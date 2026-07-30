@@ -29,3 +29,16 @@ export const authUser = (req: AuthRequest, res: Response, next: NextFunction) =>
         return res.status(500).json({message:"Internal server error"})
     }
 }
+
+export const userAdmin = (req:AuthRequest, res:Response, next:NextFunction)=>{
+    try {
+        if(!req.user.isAdmin){
+            return res.status(403).json({message:"Unauthorized: Admin access required"})
+        }
+
+        next()
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:"Internal server error"})
+    }
+}

@@ -1,0 +1,74 @@
+import ImageKit from "imagekit"
+import type { Response } from "express";
+import type { AuthRequest } from "../middleware/auth.middleware.js";
+import { prisma } from "../config/db.js";
+import { imagekit } from "../utils/multer.js";
+
+export const uploadSong = async (req: AuthRequest, res: Response) => {
+    try {
+
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+
+        const audioFile = files['audioFile']?.[0]
+        const imageFile = files['imageFile']?.[0]
+
+        if (!audioFile || !imageFile) {
+            return res.status(400).json({ message: "Please upload both audio and image files" })
+        }
+
+        const audioUploadPromise = imagekit.upload({
+            file: audioFile.buffer,
+            fileName: audioFile.originalname,
+            folder: "Songs"
+        })
+
+        const imageUploadPromise = imagekit.upload({
+            file: imageFile.buffer,
+            fileName: imageFile.originalname,
+            folder: "Songs/Images",
+
+        })
+
+        const [audioUploadResponse, imageUploadResponse] = await Promise.all([audioUploadPromise, imageUploadPromise])
+
+        const { title, artist, duration, category, albumID } = req.body
+
+        if (!title || !artist || !duration) {
+            return res.status(400).json({ message: "Please fill all the details (title, artist, duration)" })
+        }
+
+        const song = await prisma.song.create({
+            data: {
+                title: title,
+                artist: artist,
+                audioUrl: audioUploadResponse.url,
+                imageUrl: imageUploadResponse.url,
+                duration: parseInt(duration, 10),
+                category: category,
+                albumID: albumID || null
+            }
+        })
+        if (albumID) {
+            await prisma.album.update({
+                where: {
+                    id: albumID
+                },
+                data: {
+                    songs: {
+                        connect: {
+                            id: song.id
+                        }
+                    }
+                }
+            })
+        }
+
+        return res.status(200).json({
+            message: "Song uploaded successfully",
+            song
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message: "Internal server error"})
+    }
+}

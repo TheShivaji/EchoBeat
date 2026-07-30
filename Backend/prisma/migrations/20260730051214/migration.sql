@@ -1,0 +1,14 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `image` on the `Song` table. All the data in the column will be lost.
+  - You are about to drop the column `url` on the `Song` table. All the data in the column will be lost.
+  - Added the required column `audioUrl` to the `Song` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `imageUrl` to the `Song` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- AlterTable
+ALTER TABLE "Song" DROP COLUMN "image",
+DROP COLUMN "url",
+ADD COLUMN     "audioUrl" TEXT NOT NULL,
+ADD COLUMN     "imageUrl" TEXT NOT NULL;

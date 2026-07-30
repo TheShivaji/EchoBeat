@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route.js";
+import songRouter from "./routes/songs.route.js";
+import adminRouter from "./routes/admin.route.js";
 
 
 dotenv.config();
@@ -14,5 +16,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/user', authRouter);
+app.use('/api/song', songRouter);
+app.use('/api/admin', adminRouter);
 
 export default app;
