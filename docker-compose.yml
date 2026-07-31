@@ -13,7 +13,7 @@ services:
     build: ./Backend
 
     ports:
-      - "5000:5000"
+      - "3000:3000"
 
     depends_on:
       - postgres

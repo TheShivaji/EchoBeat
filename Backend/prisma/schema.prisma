@@ -47,7 +47,7 @@ model Album {
   id        String   @id @default(uuid())
   artist    String
   imageUrl  String
-  title     String?
+  title     String
   releaseYear Int?
   songs     Song[]
 
