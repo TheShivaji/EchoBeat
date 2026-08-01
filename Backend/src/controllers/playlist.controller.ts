@@ -170,3 +170,57 @@ export const deletePlaylist = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const songAddToPlaylist = async (req: AuthRequest, res: Response) => {
+    try {
+        const { playlistId } = req.params
+        const { songId, action } = req.body
+
+        if (!playlistId || !songId || !action) {
+            return res.status(400).json({ message: "Playlist ID and Song ID are required" })
+        }
+        if (action !== "add" || action !== "remove") {
+            return res.status(400).json({ message: "Invalid action" })
+        }
+
+        const existingPlaylist = await prisma.playlist.findUnique({
+            where: {
+                id: String(playlistId)
+            }
+        })
+        if (!existingPlaylist) {
+            return res.status(404).json({ message: "Playlist not found" })
+        }
+        if (existingPlaylist.userId !== req.user.id) {
+            return res.status(403).json({ message: "Unauthorized: You do not own this playlist" })
+        }
+        const existinSong = await prisma.song.findUnique({
+            where: {
+                id: String(songId)
+            }
+        })
+        if (!existinSong) {
+            return res.status(404).json({ message: "Song not found" })
+        }
+        const actionPlaylist = await prisma.playlist.update({
+            where: {
+                id: String(playlistId)
+            },
+            data: {
+                songs: action == "add" ? {
+                    connect: {
+                        id: songId
+                    }
+                } : {
+                    disconnect: {
+                        id: songId
+                    }
+                }
+            }
+        })
+        return res.status(200).json({ message: `Song ${action == "add" ? "added" : "removed"} to playlist successfully`, playlist: actionPlaylist })
+    } catch (error) {
+        console.error("Error adding song to playlist:", error);
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}

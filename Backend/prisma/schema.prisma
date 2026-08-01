@@ -17,28 +17,30 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String?
-  email     String   @unique
-  password  String
-  role      UserRole @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String      @id @default(uuid())
+  username   String?
+  email      String      @unique
+  password   String
+  role       UserRole    @default(USER)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  likedSongs LikedSong[]
 }
 
 model Song {
-  id         String   @id @default(uuid())
-  title      String
-  artist     String
-  audioUrl   String
-  imageUrl   String
-  duration   Int
-  albumID    String?
-  category   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  album      Album?   @relation(fields: [albumID], references: [id])
-  playlists  Playlist[]
+  id        String      @id @default(uuid())
+  title     String
+  artist    String
+  audioUrl  String
+  imageUrl  String
+  duration  Int
+  albumID   String?
+  category  String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  album     Album?      @relation(fields: [albumID], references: [id])
+  playlists Playlist[]  @relation("PlaylistSongs")
+  likedBy   LikedSong[]
 }
 
 model Album {
@@ -60,7 +62,19 @@ model Playlist {
   isPublic    Boolean  @default(false)
   imageUrl    String
   userId      String
-  songs       Song[]
+  songs       Song[]   @relation("PlaylistSongs")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model LikedSong {
+  id        String   @id @default(uuid())
+  userId    String
+  songId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, songId])
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deleteSong, uploadSong, addSongToAlbum, getAllSongs, getSongDetails } from "../controllers/song.controller.js";
+import { deleteSong, uploadSong, addSongToAlbum, getAllSongs, getSongDetails, unlikeSong, likeSong } from "../controllers/song.controller.js";
 import { authUser } from "../middleware/auth.middleware.js";
 import { userAdmin } from "../middleware/auth.middleware.js";
 import { upload } from "../utils/multer.js";
@@ -13,4 +13,8 @@ songRouter.get("/get-all-songs", authUser, getAllSongs)
 
 songRouter.get("/get-song-details/:songID" , authUser , getSongDetails)
 
+songRouter.post("/songs/:songId/like" , authUser , likeSong)
+
+songRouter.delete("/songs/:songId/like" , authUser , unlikeSong)
+songRouter.get("/liked-songs" , authUser , getLikedSongs)
 export default songRouter;
