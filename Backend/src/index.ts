@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route.js";
 import songRouter from "./routes/songs.route.js";
-import adminRouter from "./routes/admin.route.js";
+import albumRouter from "./routes/album.route.js";
+import playlistRouter from "./routes/playlist.route.js";
 
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(cookieParser());
 
 app.use('/api/user', authRouter);
 app.use('/api/song', songRouter);
-app.use('/api/admin', adminRouter);
+app.use('/api/album', albumRouter);
+app.use('/api/playlist', playlistRouter);
 
 export default app;
