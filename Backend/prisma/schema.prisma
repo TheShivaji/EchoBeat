@@ -30,7 +30,6 @@ model User {
 model Song {
   id        String      @id @default(uuid())
   title     String
-  artist    String
   audioUrl  String
   imageUrl  String
   duration  Int
@@ -41,11 +40,11 @@ model Song {
   album     Album?      @relation(fields: [albumID], references: [id])
   playlists Playlist[]  @relation("PlaylistSongs")
   likedBy   LikedSong[]
+  artists   Artist[]    @relation("ArtistSongs")
 }
 
 model Album {
   id          String @id @default(uuid())
-  artist      String
   imageUrl    String
   title       String
   releaseYear Int?
@@ -53,6 +52,7 @@ model Album {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  artists   Artist[] @relation("ArtistAlbums")
 }
 
 model Playlist {
@@ -77,4 +77,17 @@ model LikedSong {
   song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   @@unique([userId, songId])
+}
+
+model Artist {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  imageUrl String
+  bio      String?
+  // Relations
+  songs  Song[]  @relation("ArtistSongs")
+  albums Album[] @relation("ArtistAlbums")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

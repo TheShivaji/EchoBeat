@@ -79,16 +79,23 @@ export const uploadSong = async (req: AuthRequest, res: Response) => {
 
         const [audioUploadResponse, imageUploadResponse] = await Promise.all([audioUploadPromise, imageUploadPromise])
 
-        const { title, artist, duration, category, albumID } = req.body
+        const { title, artistId, duration, category, albumID } = req.body
 
-        if (!title || !artist || !duration) {
-            return res.status(400).json({ message: "Please fill all the details (title, artist, duration)" })
+        if (!title || !artistId || !duration) {
+            return res.status(400).json({ message: "Please fill all the details (title, artistId, duration)" })
+        }
+
+        const artistExists = await prisma.artist.findUnique({ where: { id: String(artistId) } });
+        if (!artistExists) {
+            return res.status(404).json({ message: "Artist not found" });
         }
 
         const song = await prisma.song.create({
             data: {
                 title: title,
-                artist: artist,
+                artists: {
+                    connect: { id: String(artistId) }
+                },
                 audioUrl: audioUploadResponse.url,
                 imageUrl: imageUploadResponse.url,
                 duration: parseInt(duration, 10),

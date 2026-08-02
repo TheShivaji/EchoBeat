@@ -4,10 +4,10 @@ import type { Response } from "express"
 
 export const createAlbum = async(req:AuthRequest , res:Response) =>{
     try {
-        const {artist , imageUrl , title , releaseYear } = req.body
+        const {artistId , imageUrl , title , releaseYear } = req.body
 
-        if(!artist || !imageUrl || !title || !releaseYear ){
-            return res.status(400).json({message:"All fields are required"})
+        if(!artistId || !imageUrl || !title || !releaseYear ){
+            return res.status(400).json({message:"All fields (including artistId) are required"})
         }
 
         const parsedReleaseYear = parseInt(releaseYear, 10);
@@ -15,12 +15,20 @@ export const createAlbum = async(req:AuthRequest , res:Response) =>{
             return res.status(400).json({ message: "Release year must be a valid number" });
         }
 
+        // Verify artist exists
+        const artistExists = await prisma.artist.findUnique({ where: { id: String(artistId) } });
+        if (!artistExists) {
+            return res.status(404).json({ message: "Artist not found" });
+        }
+
         const album = await prisma.album.create({
             data:{
-                artist,
-                imageUrl,
                 title,
+                imageUrl,
                 releaseYear: parsedReleaseYear,
+                artists: {
+                    connect: { id: String(artistId) }
+                }
             }
         })
 
@@ -35,7 +43,8 @@ export const getAllAlbums = async(req:AuthRequest , res:Response) =>{
     try {
         const albums = await prisma.album.findMany({
             include: {
-                songs: true
+                songs: true,
+                artists: true
             }
         })
         return res.status(200).json({message:"All albums fetched successfully" , albums})
@@ -56,7 +65,8 @@ export const getAlbumDetails = async(req:AuthRequest , res:Response) =>{
                 id:String(id)
             },
             include: {
-                songs: true
+                songs: true,
+                artists: true
             }
         })
         if(!album){
@@ -106,9 +116,9 @@ export const updateAlbum = async(req:AuthRequest , res:Response) =>{
             return res.status(400).json({message:"Album ID is required"})
         }
 
-        const {artist , imageUrl , title , releaseYear } = req.body
-        if(!artist || !imageUrl || !title || !releaseYear ){
-            return res.status(400).json({message:"All fields are required"})
+        const {artistId , imageUrl , title , releaseYear } = req.body
+        if(!artistId || !imageUrl || !title || !releaseYear ){
+            return res.status(400).json({message:"All fields (including artistId) are required"})
         }
 
         const findAlbum = await prisma.album.findUnique({
@@ -125,15 +135,23 @@ export const updateAlbum = async(req:AuthRequest , res:Response) =>{
             return res.status(400).json({ message: "Release year must be a valid number" });
         }
 
+        const artistExists = await prisma.artist.findUnique({ where: { id: String(artistId) } });
+        if (!artistExists) {
+            return res.status(404).json({ message: "Artist not found" });
+        }
+
         const album = await prisma.album.update({
             where:{
                 id:String(id)
             },
             data:{
-                artist,
-                imageUrl,
                 title,
+                imageUrl,
                 releaseYear: parsedReleaseYear,
+                artists: {
+                    // This links the new artist. If you want to replace entirely, use 'set'
+                    connect: { id: String(artistId) }
+                }
             }
         })
 
