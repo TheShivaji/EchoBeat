@@ -85,7 +85,12 @@ export const uploadSong = async (req: AuthRequest, res: Response) => {
             return res.status(400).json({ message: "Please fill all the details (title, artistId, duration)" })
         }
 
-        const artistExists = await prisma.artist.findUnique({ where: { id: String(artistId) } });
+        const artistExists = await prisma.artist.findFirst({
+            where: {
+                id: String(artistId),
+                isDeleted: false
+            }
+        });
         if (!artistExists) {
             return res.status(404).json({ message: "Artist not found" });
         }
@@ -103,7 +108,19 @@ export const uploadSong = async (req: AuthRequest, res: Response) => {
                 albumID: albumID || null
             }
         })
+
+
         if (albumID) {
+            const albumExists = await prisma.album.findFirst({
+                where: {
+                    id: albumID
+                }
+            })
+            if (!albumExists) {
+                return res.status(404).json({
+                    message: "Album not found"
+                });
+            }
             await prisma.album.update({
                 where: {
                     id: albumID
@@ -226,99 +243,99 @@ export const getSongDetails = async (req: AuthRequest, res: Response) => {
     }
 }
 
-export const likeSong = async (req:AuthRequest , res:Response)=>{
-    try{
-        const {songId} = req.params
-        if(!songId || typeof songId !== "string"){
-            return res.status(400).json({message:"Song ID is invalid"})
+export const likeSong = async (req: AuthRequest, res: Response) => {
+    try {
+        const { songId } = req.params
+        if (!songId || typeof songId !== "string") {
+            return res.status(400).json({ message: "Song ID is invalid" })
         }
         const song = await prisma.song.findUnique({
-            where:{
-                id:songId
+            where: {
+                id: songId
             }
         })
-        if(!song){
-            return res.status(404).json({message:"Song not found"})
+        if (!song) {
+            return res.status(404).json({ message: "Song not found" })
         }
 
         const alreadyLikedSong = await prisma.likedSong.findUnique({
-            where:{
-                userId_songId:{
-                    userId:req.user.id,
-                    songId:songId
+            where: {
+                userId_songId: {
+                    userId: req.user.id,
+                    songId: songId
                 }
             }
         })
-        if(alreadyLikedSong){
-            return res.status(400).json({message:"Song already liked"})
+        if (alreadyLikedSong) {
+            return res.status(400).json({ message: "Song already liked" })
         }
         const likedSong = await prisma.likedSong.create({
-            data:{
-                userId:req.user.id,
-                songId:songId
+            data: {
+                userId: req.user.id,
+                songId: songId
             }
         })
-        return res.status(200).json({message:"Song liked successfully",likedSong})
-    }catch(error){
+        return res.status(200).json({ message: "Song liked successfully", likedSong })
+    } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Internal server error"})
+        return res.status(500).json({ message: "Internal server error" })
     }
 }
 
-export const unlikeSong = async (req:AuthRequest , res:Response)=>{
-    try{
-        const {songId} = req.params
-        if(!songId || typeof songId !== "string"){
-            return res.status(400).json({message:"Song ID is invalid"})
+export const unlikeSong = async (req: AuthRequest, res: Response) => {
+    try {
+        const { songId } = req.params
+        if (!songId || typeof songId !== "string") {
+            return res.status(400).json({ message: "Song ID is invalid" })
         }
         const song = await prisma.song.findUnique({
-            where:{
-                id:songId
+            where: {
+                id: songId
             }
         })
-        if(!song){
-            return res.status(404).json({message:"Song not found"})
+        if (!song) {
+            return res.status(404).json({ message: "Song not found" })
         }
 
         const likedSong = await prisma.likedSong.findUnique({
-            where:{
-                userId_songId:{
-                    userId:req.user.id,
-                    songId:songId
+            where: {
+                userId_songId: {
+                    userId: req.user.id,
+                    songId: songId
                 }
             }
         })
-        if(!likedSong){
-            return res.status(400).json({message:"Song not liked"})
+        if (!likedSong) {
+            return res.status(400).json({ message: "Song not liked" })
         }
         const unlikedSong = await prisma.likedSong.delete({
-            where:{
-                id:likedSong.id
+            where: {
+                id: likedSong.id
             }
         })
-        return res.status(200).json({message:"Song unliked successfully",unlikedSong})
-    }catch(error){
+        return res.status(200).json({ message: "Song unliked successfully", unlikedSong })
+    } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Internal server error"})
+        return res.status(500).json({ message: "Internal server error" })
     }
 }
 
-export const getAllLikedSongs = async (req:AuthRequest , res:Response)=>{
-    try{
+export const getAllLikedSongs = async (req: AuthRequest, res: Response) => {
+    try {
         const likedSongs = await prisma.likedSong.findMany({
-            where:{
-                userId:req.user.id
+            where: {
+                userId: req.user.id
             },
-            include:{
-                song:true
+            include: {
+                song: true
             }
         })
-        if(!likedSongs.length){
-            return res.status(404).json({message:"No liked songs found"})
+        if (!likedSongs.length) {
+            return res.status(404).json({ message: "No liked songs found" })
         }
-        return res.status(200).json({message:"Liked songs fetched successfully",likedSongs})
-    }catch(error){
+        return res.status(200).json({ message: "Liked songs fetched successfully", likedSongs })
+    } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Internal server error"})
+        return res.status(500).json({ message: "Internal server error" })
     }
 }

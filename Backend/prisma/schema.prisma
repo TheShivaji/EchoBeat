@@ -80,14 +80,15 @@ model LikedSong {
 }
 
 model Artist {
-  id       String  @id @default(uuid())
-  name     String  @unique
-  imageUrl String
-  bio      String?
+  id        String    @id @default(uuid())
+  name      String    @unique
+  imageUrl  String
+  bio       String?
   // Relations
-  songs  Song[]  @relation("ArtistSongs")
-  albums Album[] @relation("ArtistAlbums")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  songs     Song[]    @relation("ArtistSongs")
+  albums    Album[]   @relation("ArtistAlbums")
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

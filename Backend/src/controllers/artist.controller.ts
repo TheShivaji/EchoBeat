@@ -91,8 +91,15 @@ export const getArtistDetails = async (req: AuthRequest, res: Response) => {
                 }
             }
         })
+
+
         if (!artist) {
             return res.status(404).json({ message: "Artist not found" })
+        }
+        if (artist?.isDeleted === true) {
+            return res.status(404).json({
+                message: "artist not founded"
+            })
         }
         return res.status(200).json(
             {
@@ -117,6 +124,17 @@ export const getArtistSongs = async (req: AuthRequest, res: Response) => {
 
         if (!artistId) {
             return res.status(400).json({ message: "Artist ID is required" })
+        }
+
+        const artist = await prisma.artist.findUnique({
+            where:{
+                id:String(artistId)
+            }
+        })
+        if(artist?.isDeleted === true){
+            return res.status(404).json({
+                message:"artist no founded"
+            })
         }
 
         const songs = await prisma.song.findMany({
@@ -171,6 +189,16 @@ export const getArtistAlbam = async (req: AuthRequest, res: Response) => {
             return res.status(400).json({ message: "Artist ID is required" });
         }
 
+        const artist = await prisma.artist.findUnique({
+            where: {
+                id: String(artistId)
+            }
+        });
+
+        if (!artist || artist.isDeleted) {
+            return res.status(404).json({ message: "Artist not found" });
+        }
+
         const skip = (page - 1) * limit;
         const take = limit;
 
@@ -186,7 +214,7 @@ export const getArtistAlbam = async (req: AuthRequest, res: Response) => {
             take,
             include: {
                 artists: true,
-                songs: true, 
+                songs: true,
             }
         });
 
@@ -194,7 +222,7 @@ export const getArtistAlbam = async (req: AuthRequest, res: Response) => {
             return res.status(404).json({ message: "No albums found" });
         }
 
-       
+
         const totalAlbums = await prisma.album.count({
             where: {
                 artists: {
@@ -218,5 +246,106 @@ export const getArtistAlbam = async (req: AuthRequest, res: Response) => {
     } catch (error) {
         console.error("Error fetching artist albums:", error);
         return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getAllArtists = async (req: AuthRequest, res: Response) => {
+    try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+
+        const skip = (page - 1) * limit;
+        const take = limit;
+
+        const getAllArtists = await prisma.artist.findMany({
+            where: {
+                isDeleted: false
+            },
+            select: {
+                id: true,
+                name: true,
+                imageUrl: true
+            },
+            skip,
+            take
+        })
+        if (getAllArtists.length === 0) {
+            return res.status(200).json({
+                message: "No artists found",
+                artists: [],
+                pagination: {
+                    total: 0,
+                    page,
+                    limit,
+                    totalPages: 0
+                }
+            });
+        }
+        const totalArtists = await prisma.artist.count({
+            where: {
+                isDeleted: false
+            }
+        });
+
+        return res.status(200).json({
+            message: "artists featch successfully",
+            artists: getAllArtists,
+            pagination: {
+                total: totalArtists,
+                page,
+                limit,
+                totalPages: Math.ceil(totalArtists / limit)
+            }
+
+        })
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal server error"
+        })
+    }
+}
+
+export const deleteArtist = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id: artistId } = req.params;
+
+        if (!artistId) {
+            return res.status(400).json({ message: "Artist ID is required" });
+        }
+
+        const artist = await prisma.artist.findUnique({
+            where: {
+                id: String(artistId)
+            }
+        });
+        
+        if (!artist || artist.isDeleted) {
+            return res.status(404).json({
+                message: "Artist does not exist or is already deleted"
+            });
+        }
+
+        await prisma.artist.update({
+            where: {
+                id: String(artistId)
+            },
+            data: {
+                isDeleted: true,
+                deletedAt: new Date()
+
+            }
+        })
+
+        return res.status(200).json({
+            message: "artist delete successfully"
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            message: "Internal server error"
+        })
     }
 }

@@ -15,8 +15,13 @@ export const createAlbum = async(req:AuthRequest , res:Response) =>{
             return res.status(400).json({ message: "Release year must be a valid number" });
         }
 
-        // Verify artist exists
-        const artistExists = await prisma.artist.findUnique({ where: { id: String(artistId) } });
+        // Verify artist exists and is not deleted
+        const artistExists = await prisma.artist.findFirst({ 
+            where: { 
+                id: String(artistId),
+                isDeleted: false
+            } 
+        });
         if (!artistExists) {
             return res.status(404).json({ message: "Artist not found" });
         }
@@ -135,7 +140,12 @@ export const updateAlbum = async(req:AuthRequest , res:Response) =>{
             return res.status(400).json({ message: "Release year must be a valid number" });
         }
 
-        const artistExists = await prisma.artist.findUnique({ where: { id: String(artistId) } });
+        const artistExists = await prisma.artist.findFirst({ 
+            where: { 
+                id: String(artistId),
+                isDeleted: false
+            } 
+        });
         if (!artistExists) {
             return res.status(404).json({ message: "Artist not found" });
         }
