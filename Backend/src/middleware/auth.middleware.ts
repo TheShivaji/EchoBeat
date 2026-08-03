@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
 import config from "../config/config.js"
+import { prisma } from "../config/db.js"
 
 export interface AuthRequest extends Request {
     user?: any;
@@ -30,10 +31,15 @@ export const authUser = (req: AuthRequest, res: Response, next: NextFunction) =>
     }
 }
 
-export const userAdmin = (req:AuthRequest, res:Response, next:NextFunction)=>{
+export const userAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        if(!req.user.isAdmin){
-            return res.status(403).json({message:"Unauthorized: Admin access required"})
+        // DB se fresh user fetch karo taaki real-time role check ho
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id }
+        })
+
+        if (!user || user.role !== "ADMIN") {
+            return res.status(403).json({ message: "Unauthorized: Admin access required" })
         }
 
         next()
@@ -41,4 +47,4 @@ export const userAdmin = (req:AuthRequest, res:Response, next:NextFunction)=>{
         console.log(error);
         return res.status(500).json({message:"Internal server error"})
     }
-}
+}

@@ -21,7 +21,11 @@ function generateToken(res: Response, id: string) {
 
 export const singup = async (req: AuthRequest, res: Response) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password , role} = req.body;
+
+        if(role !== "USER" && role !== "ADMIN"){
+            return res.status(400).json({ message: "Invalid role" })
+        }
 
         if (!username || !email || !password) {
             return res.status(400).json({ message: "Please fill all the details" })
@@ -43,6 +47,7 @@ export const singup = async (req: AuthRequest, res: Response) => {
                 username: username,
                 email: email,
                 password: passwordHash,
+                role
             }
         })
 

@@ -5,7 +5,7 @@ import { userAdmin } from "../middleware/auth.middleware.js";
 import { upload } from "../utils/multer.js";
 
 const songRouter = Router();
-songRouter.post("/song", authUser, userAdmin, upload.fields([{ name: "audioFile", maxCount: 1 }, { name: "imageFile", maxCount: 1 }]))
+songRouter.post("/song", authUser, userAdmin, upload.fields([{ name: "audioFile", maxCount: 1 }, { name: "imageFile", maxCount: 1 }]), uploadSong)
 songRouter.delete("/delete/:id", authUser, userAdmin, deleteSong)
 songRouter.post("/album/:albumID/song", authUser, userAdmin, addSongToAlbum)
 

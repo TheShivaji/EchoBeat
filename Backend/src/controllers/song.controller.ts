@@ -190,29 +190,40 @@ export const getAllSongs = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ message: "Internal server error" })
     }
 }
-export const  getSongDetails = async (req:AuthRequest , res:Response) =>
-{
-const songID = req.params
+export const getSongDetails = async (req: AuthRequest, res: Response) => {
+    try {
+        const { songID } = req.params  // Bug 1 Fix: destructure kiya
 
-if(!songID || typeof songID !== "string"){
-    return response.status(400).json({
-        message:"all filed is required"
-    })
-}
-const song = await prisma.song.findUnique({
-    where:{
-        id:songID
+        if (!songID || typeof songID !== "string") {
+            return res.status(400).json({   // Bug 2 Fix: response → res
+                message: "Song ID is required"
+            })
+        }
+
+        const song = await prisma.song.findUnique({
+            where: {
+                id: songID  // Bug 1 Fix: ab string hai, object nahi
+            },
+            include: {
+                artists: true,
+                album: true
+            }
+        })
+
+        if (!song) {
+            return res.status(404).json({   // Bug 3 Fix: response → res
+                message: "Song not found"
+            })
+        }
+
+        return res.status(200).json({
+            message: "Song details fetched successfully",
+            song
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" })
     }
-})
-if(!song){
-    return response.status(404).json({
-        message:"song not found"
-    })
-}
-return res.status(200).json({
-    message:"song details fetched successfully",
-    song
-})
 }
 
 export const likeSong = async (req:AuthRequest , res:Response)=>{
