@@ -179,7 +179,6 @@ export const searchAlbum = async (req: AuthRequest, res: Response) => {
                                 contains: searchQuery,
                                 mode: "insensitive"
                             },
-                            // Ensure the searched artist is also not deleted
                             isDeleted: false
                         }
                     }

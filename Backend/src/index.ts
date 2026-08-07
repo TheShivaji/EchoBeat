@@ -8,6 +8,7 @@ import albumRouter from "./routes/album.route.js";
 import playlistRouter from "./routes/playlist.route.js";
 import artistRouter from "./routes/artist.route.js";
 import searchRouter from "./routes/search.routes.js";
+import historyRouter from "./routes/history.route.js";
 
 
 dotenv.config();
@@ -24,5 +25,6 @@ app.use('/api/album', albumRouter);
 app.use('/api/playlist', playlistRouter);
 app.use('/api/artist', artistRouter);
 app.use('/api/search', searchRouter)
+app.use('/api/history', historyRouter);
 
 export default app;
