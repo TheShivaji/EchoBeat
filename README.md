@@ -50,7 +50,7 @@ The application is cleanly decoupled into two independent environments — a sta
 flowchart LR
     subgraph Client["🖥️ Frontend — React 19 SPA"]
         UI["React Components"]
-        RTK["Redux Toolkit\n(Player / Auth / Queue state)"]
+        RTK["Redux Toolkit<br/>(Player / Auth / Queue state)"]
         Router["React Router DOM v6"]
         UI --> RTK
         UI --> Router
@@ -59,8 +59,8 @@ flowchart LR
     subgraph Server["⚙️ Backend — Express 5 API"]
         Routes["Express Routes"]
         MW["JWT Auth Middleware"]
-        Ctrl["Controllers\n(album / artist / playlist / song)"]
-        Multer["Multer\n(multipart parsing)"]
+        Ctrl["Controllers<br/>(album / artist / playlist / song)"]
+        Multer["Multer<br/>(multipart parsing)"]
         Routes --> MW --> Ctrl
         Ctrl --> Multer
     end
@@ -76,9 +76,9 @@ flowchart LR
     Ctrl -- "type-safe queries" --> Prisma
     Multer -- "stream buffers" --> IK
 
-    style Client fill:#61DAFB33,stroke:#61DAFB
-    style Server fill:#40495933,stroke:#404D59
-    style Data fill:#31619233,stroke:#316192
+    style Client fill:#e6f7fd,stroke:#61DAFB,stroke-width:2px
+    style Server fill:#eceff1,stroke:#404D59,stroke-width:2px
+    style Data fill:#e3ecf5,stroke:#316192,stroke-width:2px
 ```
 
 ### Request Lifecycle
@@ -148,3 +148,146 @@ erDiagram
         string songId FK
         datetime createdAt
     }
+```
+
+---
+
+## 💻 Tech Stack
+
+<table>
+<tr>
+<td valign="top" width="50%">
+
+### 🎨 Frontend
+- **React 19** — UI library
+- **Vite 8** — build tool, instant HMR
+- **Tailwind CSS v4** — utility-first styling
+- **Redux Toolkit** — centralized state management
+- **React Router DOM v6** — client-side routing
+- **Axios** — HTTP client
+- **TypeScript** — end-to-end type safety
+
+</td>
+<td valign="top" width="50%">
+
+### ⚙️ Backend
+- **Node.js** + **Express 5** — REST API
+- **Prisma ORM** — type-safe database access
+- **PostgreSQL** — relational database
+- **ImageKit** — CDN & media storage
+- **JSON Web Tokens (JWT)** — auth
+- **BcryptJS** — password hashing
+- **TypeScript** — end-to-end type safety
+
+</td>
+</tr>
+</table>
+
+---
+
+## 📂 Folder Structure
+
+```text
+Echo-Beat/
+├── Backend/
+│   ├── prisma/             # Database schemas & migrations
+│   ├── src/
+│   │   ├── config/         # Environment & DB configurations
+│   │   ├── controllers/    # Route business logic (album, artist, playlist, song)
+│   │   ├── middleware/     # JWT auth guards
+│   │   ├── routes/         # Express endpoint definitions
+│   │   └── utils/          # ImageKit and Multer configurations
+│   └── package.json
+└── Frontend/
+    ├── src/                # React application root
+    ├── package.json
+    └── vite.config.ts
+```
+
+---
+
+## 🧠 Engineering Highlights & Decisions
+
+- **Why PostgreSQL over MongoDB?** Music ecosystems are inherently relational (Artists → Songs → Albums → Playlists). A relational database enforces data integrity — `onDelete: Cascade` instantly sweeps dependent records clean when an artist is deleted, preventing orphaned data.
+- **Explicit Join Tables:** Instead of plain arrays, the `LikedSong` model is an explicit Many-to-Many join table, so the system can track *when* a user liked a song (`createdAt`), adding real depth to the data model.
+- **Redux Toolkit over Context API:** A music player carries deeply nested state (current track, play queue, volume, auth status). Redux Toolkit avoids the unnecessary re-renders that Context API would trigger here.
+- **Vite + Tailwind v4:** Prioritizes developer experience and small production bundle sizes.
+- **Stateless Media Pipeline:** Uploaded files are parsed via Multer and streamed directly to ImageKit — the server never holds media on disk, keeping it horizontally scalable.
+
+---
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+- Node.js (v18+)
+- PostgreSQL installed locally, or a remote cloud DB connection string
+- An ImageKit account (for media uploads)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/TheShivaji/EchoBeat.git
+cd EchoBeat
+```
+
+### 2. Backend setup
+
+```bash
+cd Backend
+npm install
+```
+
+Create a `.env` file inside `Backend/`:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/echobeat"
+JWT_SECRET="your_secret_key"
+IMAGEKIT_URL_ENDPOINT="..."
+IMAGEKIT_PUBLIC_KEY="..."
+IMAGEKIT_PRIVATE_KEY="..."
+```
+
+Push the schema and start the dev server:
+
+```bash
+npx prisma db push
+npx prisma generate
+npm run dev
+```
+
+### 3. Frontend setup
+
+Open a new terminal window:
+
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Real-time collaborative playlists
+- [ ] Audio waveform visualizer
+- [ ] Recommendation engine based on listening history
+- [ ] Dockerized one-command local setup
+
+---
+
+## 📄 License
+
+This project is licensed under the **ISC License**.
+
+## 👤 Author
+
+**TheShivaji**
+
+- 💻 GitHub: [@TheShivaji](https://github.com/TheShivaji)
+
+<div align="center">
+
+*Built with precision, typed to perfection.* 🎧
+
+</div>
