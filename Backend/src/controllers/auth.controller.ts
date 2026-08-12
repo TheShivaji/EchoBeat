@@ -21,14 +21,14 @@ function generateToken(res: Response, id: string) {
 
 export const singup = async (req: AuthRequest, res: Response) => {
     try {
-        const { username, email, password , role} = req.body;
+        const { name, email, password, role } = req.body;
 
-        if(role !== "USER" && role !== "ADMIN"){
-            return res.status(400).json({ message: "Invalid role" })
+        if (!name || !email || !password) {
+            return res.status(400).json({ success: false, message: "Please fill all the details" })
         }
 
-        if (!username || !email || !password) {
-            return res.status(400).json({ message: "Please fill all the details" })
+        if (role !== "USER" && role !== "ADMIN") {
+            return res.status(400).json({ success: false, message: "Invalid account type" })
         }
 
         const findUser = await prisma.user.findUnique({
@@ -36,7 +36,7 @@ export const singup = async (req: AuthRequest, res: Response) => {
         })
 
         if (findUser) {
-            return res.status(400).json({ message: "User already exists" })
+            return res.status(400).json({ success: false, message: "User already exists" })
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -44,7 +44,7 @@ export const singup = async (req: AuthRequest, res: Response) => {
 
         const user = await prisma.user.create({
             data: {
-                username: username,
+                username: name,
                 email: email,
                 password: passwordHash,
                 role
@@ -54,12 +54,13 @@ export const singup = async (req: AuthRequest, res: Response) => {
         generateToken(res, user.id)
 
         return res.status(201).json({
-            message: "User created successfully",
+            success: true,
+            message: "Account created successfully",
             user: user
         })
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error" })
+        return res.status(500).json({ success: false, message: "Internal server error" })
     }
 }
 
@@ -68,7 +69,7 @@ export const login = async (req: AuthRequest, res: Response) => {
         const { email, password } = req.body
 
         if (!email || !password) {
-            return res.status(400).json({ message: "Please fill all the details" })
+            return res.status(400).json({ success: false, message: "Please fill all the details" })
         }
 
         const user = await prisma.user.findUnique({
@@ -76,25 +77,26 @@ export const login = async (req: AuthRequest, res: Response) => {
         })
 
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" })
+            return res.status(401).json({ success: false, message: "Invalid credentials" })
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password)
 
         if (!isPasswordValid) {
-            return res.status(401).json({ message: "Invalid credentials" })
+            return res.status(401).json({ success: false, message: "Invalid credentials" })
         }
 
         generateToken(res, user.id)
 
         return res.status(200).json({
-            message: "User logged in successfully",
+            success: true,
+            message: "Logged in successfully",
             user: user
         })
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error" })
+        return res.status(500).json({ success: false, message: "Internal server error" })
     }
 }
 

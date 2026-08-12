@@ -1,8 +1,14 @@
+import { RouterProvider } from "react-router-dom"
+import appRouter from "./app.routes.tsx"
+import { Toaster } from "react-hot-toast"
 
 
 const App = () => {
   return (
-    <div>App</div>
+    <>
+      <Toaster position="top-center" />
+      <RouterProvider router={appRouter} />
+    </>
   )
 }
 
