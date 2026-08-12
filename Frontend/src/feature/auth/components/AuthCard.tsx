@@ -1,4 +1,4 @@
-import { Music2 } from "lucide-react";
+import { Disc3 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface AuthCardProps {
@@ -19,47 +19,55 @@ const AuthCard = ({
     footerLinkTo,
 }: AuthCardProps) => {
     return (
-        <main className="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 py-12">
-            <div className="w-full max-w-[420px]">
+        <main className="min-h-screen bg-[#0c0c0c] flex items-center justify-center px-5 py-16">
+            <div className="w-full max-w-[400px]">
 
-                {/* Brand */}
-                <div className="flex items-center gap-2 mb-10">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#7c3aed]/15 ring-1 ring-[#7c3aed]/30">
-                        <Music2 size={16} className="text-[#a78bfa]" strokeWidth={2} />
-                    </div>
-                    <span className="text-white text-[15px] font-semibold tracking-tight">
+                {/* Brand mark */}
+                <div className="flex items-center gap-2.5 mb-14">
+                    <Disc3
+                        size={17}
+                        strokeWidth={1.5}
+                        className="text-[#c8c8c8] shrink-0"
+                        aria-hidden="true"
+                    />
+                    <span className="text-[#c8c8c8] text-[13px] font-medium tracking-[0.1em] uppercase">
                         EchoBeats
                     </span>
                 </div>
 
-                {/* Heading block */}
-                <div className="mb-8">
-                    <h1 className="text-[26px] font-bold text-white tracking-tight leading-tight">
+                {/* Display heading */}
+                <div className="mb-10">
+                    <h1
+                        className="text-[34px] font-normal text-[#ededed] leading-[1.2] tracking-[-0.02em]"
+                        style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+                    >
                         {heading}
                     </h1>
-                    <p className="mt-1.5 text-[14px] text-[#71717a]">
+                    <p className="mt-3 text-[14px] text-[#999999] leading-relaxed font-normal">
                         {subheading}
                     </p>
                 </div>
 
-                {/* Form area */}
-                <div className="space-y-5">
+                {/* Form content */}
+                <div>
                     {children}
                 </div>
 
                 {/* Divider */}
-                <div className="flex items-center gap-3 my-7">
-                    <div className="flex-1 h-px bg-[#27272a]" />
-                    <span className="text-[12px] text-[#52525b] font-medium tracking-wide">or</span>
-                    <div className="flex-1 h-px bg-[#27272a]" />
+                <div className="flex items-center gap-4 my-8">
+                    <div className="flex-1 h-px bg-[#222222]" />
+                    <span className="text-[11px] text-[#555555] font-medium tracking-widest uppercase">
+                        or
+                    </span>
+                    <div className="flex-1 h-px bg-[#222222]" />
                 </div>
 
-                {/* Footer nav */}
-                <p className="text-center text-[13.5px] text-[#71717a]">
+                {/* Footer */}
+                <p className="text-center text-[13.5px] text-[#888888] font-normal">
                     {footerText}{" "}
                     <Link
                         to={footerLinkTo}
-                        className="text-[#a78bfa] font-medium hover:text-white transition-colors duration-150 focus:outline-none focus-visible:underline"
+                        className="text-[#c8c8c8] font-medium underline underline-offset-4 decoration-[#444444] hover:text-[#ededed] hover:decoration-[#888888] transition-all duration-200 focus:outline-none focus-visible:text-white"
                     >
                         {footerLinkLabel}
                     </Link>

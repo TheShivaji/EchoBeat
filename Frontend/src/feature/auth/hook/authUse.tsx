@@ -11,6 +11,7 @@ import type {
     AuthApiResponse
 } from "../types/auth.types";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 
 
@@ -79,9 +80,15 @@ export const useAuth = () => {
             const res = await getCurrentUser();
 
             if (res?.success) {
-                handleAuthSuccess(res);
+                // Silently set user — no toast on auto-login
+                dispatch(setUser(res.user));
             }
         } catch (error) {
+            // 401 means user is simply not logged in — expected, no toast
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                return;
+            }
+            // Any other unexpected error — show toast
             handleAuthError(error);
         } finally {
             dispatch(setLoading(false));

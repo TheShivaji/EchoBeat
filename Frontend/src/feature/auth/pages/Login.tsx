@@ -20,11 +20,12 @@ const LoginPage = () => {
 
     const { handleLogin } = useAuth();
     const { loading, error } = useSelector((state: RootState) => state.auth);
-const navigate = useNavigate()
+    const navigate = useNavigate();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await handleLogin({ email, password });
-        navigate("/")
+        navigate("/");
     };
 
     return (
@@ -32,10 +33,11 @@ const navigate = useNavigate()
             heading="Welcome back"
             subheading="Sign in to continue listening."
             footerText="Don't have an account?"
-            footerLinkLabel="Create account"
-            footerLinkTo="/signup"
+            footerLinkLabel="Create one"
+            footerLinkTo="/register"
         >
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
+
                 <AuthInput
                     id="login-email"
                     label="Email"
@@ -49,18 +51,19 @@ const navigate = useNavigate()
                     error={error ?? undefined}
                 />
 
-                <div className="flex flex-col gap-1.5">
+                {/* Password with inline forgot */}
+                <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <label
                             htmlFor="login-password"
-                            className="text-[13px] font-medium text-[#a1a1aa]"
+                            className="text-[12px] font-medium text-[#aaaaaa] tracking-[0.05em] uppercase"
                         >
                             Password
-                            <span className="ml-0.5 text-[#a78bfa]" aria-hidden="true">*</span>
+                            <span className="ml-1 text-[#666666]" aria-hidden="true">*</span>
                         </label>
                         <button
                             type="button"
-                            className="text-[12.5px] text-[#a78bfa] hover:text-white transition-colors duration-150 focus:outline-none focus-visible:underline"
+                            className="text-[12px] text-[#777777] hover:text-[#c0c0c0] transition-colors duration-150 focus:outline-none focus-visible:underline font-normal"
                         >
                             Forgot password?
                         </button>
@@ -77,9 +80,9 @@ const navigate = useNavigate()
                     />
                 </div>
 
-                <div className="pt-1">
+                <div className="pt-2">
                     <AuthButton type="submit" loading={loading} disabled={loading}>
-                        Sign In
+                        Sign in
                     </AuthButton>
                 </div>
             </form>

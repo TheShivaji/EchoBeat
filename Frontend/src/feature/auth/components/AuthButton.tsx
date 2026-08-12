@@ -23,20 +23,21 @@ const AuthButton = ({
             disabled={isDisabled}
             onClick={onClick}
             className={[
-                "w-full h-11 flex items-center justify-center gap-2",
-                "rounded-lg text-[14px] font-semibold text-white",
-                "bg-[#7c3aed] transition-all duration-150",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d0d0f]",
+                "w-full h-12 flex items-center justify-center gap-2.5",
+                "rounded-md text-[13.5px] font-medium tracking-[0.01em]",
+                "bg-[#f0f0f0] text-[#0c0c0c]",
+                "transition-all duration-150",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f0f0f0]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0c0c]",
                 isDisabled
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-[#6d28d9] active:scale-[0.985]",
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-white active:scale-[0.985] active:bg-[#e8e8e8]",
             ].join(" ")}
         >
             {loading && (
                 <Loader2
-                    size={16}
-                    strokeWidth={2.5}
-                    className="animate-spin text-white/70"
+                    size={14}
+                    strokeWidth={2}
+                    className="animate-spin text-[#0c0c0c]/50"
                     aria-hidden="true"
                 />
             )}

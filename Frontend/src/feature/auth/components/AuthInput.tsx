@@ -24,16 +24,18 @@ const AuthInput = ({
     autoComplete,
 }: AuthInputProps) => {
     return (
-        <div className="flex flex-col gap-1.5">
-            <label
-                htmlFor={id}
-                className="text-[13px] font-medium text-[#a1a1aa]"
-            >
-                {label}
-                {required && (
-                    <span className="ml-0.5 text-[#a78bfa]" aria-hidden="true">*</span>
-                )}
-            </label>
+        <div className="flex flex-col gap-2">
+            {label && (
+                <label
+                    htmlFor={id}
+                    className="text-[12px] font-medium text-[#aaaaaa] tracking-[0.05em] uppercase"
+                >
+                    {label}
+                    {required && (
+                        <span className="ml-1 text-[#666666]" aria-hidden="true">*</span>
+                    )}
+                </label>
+            )}
             <input
                 id={id}
                 type={type}
@@ -46,22 +48,21 @@ const AuthInput = ({
                 aria-describedby={error ? `${id}-error` : undefined}
                 aria-invalid={error ? true : undefined}
                 className={[
-                    "w-full h-11 px-3.5 rounded-lg text-[14px] text-white placeholder:text-[#3f3f46]",
-                    "bg-[#18181b] border transition-all duration-150 outline-none",
-                    "focus:ring-2 focus:ring-[#7c3aed]/40 focus:border-[#7c3aed]/60",
-                    "hover:border-[#3f3f46]",
+                    "w-full h-12 px-4 rounded-md text-[14px] font-normal text-[#ededed]",
+                    "placeholder:text-[#555555] bg-[#161616] outline-none",
+                    "border transition-all duration-200",
                     disabled
-                        ? "opacity-40 cursor-not-allowed border-[#27272a]"
+                        ? "opacity-40 cursor-not-allowed border-[#1e1e1e]"
                         : error
-                        ? "border-red-500/60 focus:ring-red-500/30 focus:border-red-500/60"
-                        : "border-[#27272a]",
+                        ? "border-[#7a3535] focus:border-[#a04444]"
+                        : "border-[#252525] hover:border-[#333333] focus:border-[#484848]",
                 ].join(" ")}
             />
             {error && (
                 <p
                     id={`${id}-error`}
                     role="alert"
-                    className="text-[12px] text-red-400 mt-0.5"
+                    className="text-[12.5px] text-[#cc6666] font-normal mt-0.5"
                 >
                     {error}
                 </p>

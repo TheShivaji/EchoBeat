@@ -1,3 +1,5 @@
+
+
 export interface User {
     id: string;
     name: string;
@@ -22,4 +24,5 @@ export interface AuthApiResponse {
     user: User;
     message: string;
 }
+
 

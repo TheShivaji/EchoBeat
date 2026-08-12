@@ -27,15 +27,15 @@ const PasswordInput = ({
     const [visible, setVisible] = useState(false);
 
     return (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
             {label && (
                 <label
                     htmlFor={id}
-                    className="text-[13px] font-medium text-[#a1a1aa]"
+                    className="text-[12px] font-medium text-[#aaaaaa] tracking-[0.05em] uppercase"
                 >
                     {label}
                     {required && (
-                        <span className="ml-0.5 text-[#a78bfa]" aria-hidden="true">*</span>
+                        <span className="ml-1 text-[#666666]" aria-hidden="true">*</span>
                     )}
                 </label>
             )}
@@ -52,15 +52,14 @@ const PasswordInput = ({
                     aria-describedby={error ? `${id}-error` : undefined}
                     aria-invalid={error ? true : undefined}
                     className={[
-                        "w-full h-11 pl-3.5 pr-11 rounded-lg text-[14px] text-white placeholder:text-[#3f3f46]",
-                        "bg-[#18181b] border transition-all duration-150 outline-none",
-                        "focus:ring-2 focus:ring-[#7c3aed]/40 focus:border-[#7c3aed]/60",
-                        "hover:border-[#3f3f46]",
+                        "w-full h-12 pl-4 pr-12 rounded-md text-[14px] font-normal text-[#ededed]",
+                        "placeholder:text-[#555555] bg-[#161616] outline-none",
+                        "border transition-all duration-200",
                         disabled
-                            ? "opacity-40 cursor-not-allowed border-[#27272a]"
+                            ? "opacity-40 cursor-not-allowed border-[#1e1e1e]"
                             : error
-                            ? "border-red-500/60 focus:ring-red-500/30 focus:border-red-500/60"
-                            : "border-[#27272a]",
+                            ? "border-[#7a3535] focus:border-[#a04444]"
+                            : "border-[#252525] hover:border-[#333333] focus:border-[#484848]",
                     ].join(" ")}
                 />
                 <button
@@ -68,12 +67,12 @@ const PasswordInput = ({
                     onClick={() => setVisible((v) => !v)}
                     disabled={disabled}
                     aria-label={visible ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52525b] hover:text-[#a1a1aa] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/50 rounded disabled:cursor-not-allowed"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#666666] hover:text-[#aaaaaa] transition-colors duration-150 focus:outline-none focus-visible:text-[#aaaaaa] rounded disabled:cursor-not-allowed"
                 >
                     {visible ? (
-                        <EyeOff size={16} strokeWidth={1.75} />
+                        <EyeOff size={15} strokeWidth={1.75} />
                     ) : (
-                        <Eye size={16} strokeWidth={1.75} />
+                        <Eye size={15} strokeWidth={1.75} />
                     )}
                 </button>
             </div>
@@ -81,7 +80,7 @@ const PasswordInput = ({
                 <p
                     id={`${id}-error`}
                     role="alert"
-                    className="text-[12px] text-red-400 mt-0.5"
+                    className="text-[12.5px] text-[#cc6666] font-normal mt-0.5"
                 >
                     {error}
                 </p>

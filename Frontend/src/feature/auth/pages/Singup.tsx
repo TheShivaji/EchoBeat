@@ -22,13 +22,13 @@ const ROLES: { value: Role; label: string; description: string; icon: React.Reac
         value: "USER",
         label: "Listener",
         description: "Stream and enjoy music",
-        icon: <User size={15} strokeWidth={2} />,
+        icon: <User size={14} strokeWidth={1.75} />,
     },
     {
         value: "ADMIN",
         label: "Admin",
-        description: "Manage content and users",
-        icon: <ShieldCheck size={15} strokeWidth={2} />,
+        description: "Manage content & users",
+        icon: <ShieldCheck size={14} strokeWidth={1.75} />,
     },
 ];
 
@@ -39,7 +39,7 @@ const SignupPage = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [role, setRole] = useState<Role>("USER");
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const { handleSignup } = useAuth();
     const { loading, error } = useSelector((state: RootState) => state.auth);
 
@@ -48,8 +48,7 @@ const SignupPage = () => {
         if (password !== confirmPassword) return;
         try {
             await handleSignup({ name, email, password, role });
-            navigate('/')
-
+            navigate("/");
         } catch (err) {
             console.log("Error in signup", err);
         }
@@ -67,13 +66,18 @@ const SignupPage = () => {
             footerLinkTo="/login"
         >
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
-                {/* Role selector */}
-                <div className="flex flex-col gap-1.5">
-                    <span className="text-[13px] font-medium text-[#a1a1aa]">
+
+                {/* Account type selector */}
+                <div className="flex flex-col gap-2.5">
+                    <span className="text-[12px] font-medium text-[#aaaaaa] tracking-[0.05em] uppercase">
                         Account type
-                        <span className="ml-0.5 text-[#a78bfa]" aria-hidden="true">*</span>
+                        <span className="ml-1 text-[#666666]" aria-hidden="true">*</span>
                     </span>
-                    <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Account type">
+                    <div
+                        className="grid grid-cols-2 gap-2.5"
+                        role="radiogroup"
+                        aria-label="Account type"
+                    >
                         {ROLES.map((r) => {
                             const isSelected = role === r.value;
                             return (
@@ -85,24 +89,31 @@ const SignupPage = () => {
                                     disabled={loading}
                                     onClick={() => setRole(r.value)}
                                     className={[
-                                        "flex flex-col items-start gap-1 px-3.5 py-3 rounded-lg border text-left",
+                                        "flex items-center gap-3 px-4 py-3.5 rounded-md border text-left",
                                         "transition-all duration-150 focus:outline-none",
-                                        "focus-visible:ring-2 focus-visible:ring-[#7c3aed]/50",
+                                        "focus-visible:ring-1 focus-visible:ring-[#444444]",
                                         loading ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
                                         isSelected
-                                            ? "border-[#7c3aed]/60 bg-[#7c3aed]/10"
-                                            : "border-[#27272a] bg-[#18181b] hover:border-[#3f3f46]",
+                                            ? "border-[#444444] bg-[#1a1a1a]"
+                                            : "border-[#222222] bg-[#131313] hover:border-[#333333] hover:bg-[#161616]",
                                     ].join(" ")}
                                 >
                                     <span className={[
-                                        "flex items-center gap-1.5 text-[13px] font-semibold",
-                                        isSelected ? "text-[#a78bfa]" : "text-[#a1a1aa]",
+                                        "shrink-0 transition-colors duration-150",
+                                        isSelected ? "text-[#c8c8c8]" : "text-[#666666]",
                                     ].join(" ")}>
                                         {r.icon}
-                                        {r.label}
                                     </span>
-                                    <span className="text-[11.5px] text-[#52525b] leading-tight">
-                                        {r.description}
+                                    <span className="flex flex-col gap-1 min-w-0">
+                                        <span className={[
+                                            "text-[13px] font-medium leading-none",
+                                            isSelected ? "text-[#ededed]" : "text-[#888888]",
+                                        ].join(" ")}>
+                                            {r.label}
+                                        </span>
+                                        <span className="text-[11px] text-[#555555] leading-tight truncate">
+                                            {r.description}
+                                        </span>
                                     </span>
                                 </button>
                             );
@@ -158,13 +169,13 @@ const SignupPage = () => {
                     error={passwordMismatch ? "Passwords do not match" : undefined}
                 />
 
-                <div className="pt-1">
+                <div className="pt-2">
                     <AuthButton
                         type="submit"
                         loading={loading}
                         disabled={loading || passwordMismatch}
                     >
-                        Create Account
+                        Create account
                     </AuthButton>
                 </div>
             </form>
