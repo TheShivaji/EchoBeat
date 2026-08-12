@@ -48,37 +48,78 @@ The application is cleanly decoupled into two independent environments — a sta
 
 ```mermaid
 flowchart LR
-    subgraph Client["🖥️ Frontend — React 19 SPA"]
-        UI["React Components"]
-        RTK["Redux Toolkit<br/>(Player / Auth / Queue state)"]
-        Router["React Router DOM v6"]
+    %% =========================
+    %% CLIENT
+    %% =========================
+    subgraph Client["🖥️  FRONTEND  •  React 19 SPA"]
+        direction TB
+
+        UI["⚛️ React Components"]
+        RTK["🧠 Redux Toolkit<br/>Player • Auth • Queue"]
+        Router["🧭 React Router DOM v6"]
+
         UI --> RTK
         UI --> Router
     end
 
-    subgraph Server["⚙️ Backend — Express 5 API"]
-        Routes["Express Routes"]
-        MW["JWT Auth Middleware"]
-        Ctrl["Controllers<br/>(album / artist / playlist / song)"]
-        Multer["Multer<br/>(multipart parsing)"]
-        Routes --> MW --> Ctrl
-        Ctrl --> Multer
+    %% =========================
+    %% SERVER
+    %% =========================
+    subgraph Server["⚙️  BACKEND  •  Express 5 API"]
+        direction TB
+
+        Routes["🛣️ Express Routes"]
+        MW["🔐 JWT Auth Middleware"]
+        Multer["📦 Multer<br/>Multipart Parsing"]
+        Ctrl["🎯 Controllers<br/>Album • Artist • Playlist • Song"]
+
+        Routes --> MW
+        MW --> Multer
+        Multer --> Ctrl
     end
 
-    subgraph Data["🗄️ Data & Media Layer"]
-        Prisma["Prisma ORM"]
-        PG[("PostgreSQL")]
-        IK[("ImageKit CDN")]
+    %% =========================
+    %% DATA
+    %% =========================
+    subgraph Data["🗄️  DATA & MEDIA"]
+        direction TB
+
+        Prisma["🔷 Prisma ORM"]
+        PG[("🐘 PostgreSQL")]
+        IK[("🖼️ ImageKit CDN")]
+
         Prisma --> PG
     end
 
-    Client -- "Axios / REST calls" --> Server
-    Ctrl -- "type-safe queries" --> Prisma
-    Multer -- "stream buffers" --> IK
+    %% =========================
+    %% CONNECTIONS
+    %% =========================
+    Client -->|"REST API • Axios"| Server
+    Ctrl -->|"Type-safe Queries"| Prisma
+    Ctrl -->|"Media Uploads"| IK
 
-    style Client fill:#e6f7fd,stroke:#61DAFB,stroke-width:2px
-    style Server fill:#eceff1,stroke:#404D59,stroke-width:2px
-    style Data fill:#e3ecf5,stroke:#316192,stroke-width:2px
+    %% =========================
+    %% STYLES
+    %% =========================
+    style Client fill:#F0F9FF,stroke:#38BDF8,stroke-width:2px,color:#0F172A
+    style Server fill:#F8FAFC,stroke:#64748B,stroke-width:2px,color:#0F172A
+    style Data fill:#F5F3FF,stroke:#8B5CF6,stroke-width:2px,color:#0F172A
+
+    style UI fill:#FFFFFF,stroke:#61DAFB,stroke-width:1.5px,color:#0F172A
+    style RTK fill:#FFFFFF,stroke:#764ABC,stroke-width:1.5px,color:#0F172A
+    style Router fill:#FFFFFF,stroke:#CA4245,stroke-width:1.5px,color:#0F172A
+
+    style Routes fill:#FFFFFF,stroke:#475569,stroke-width:1.5px,color:#0F172A
+    style MW fill:#FFFFFF,stroke:#EF4444,stroke-width:1.5px,color:#0F172A
+    style Multer fill:#FFFFFF,stroke:#F59E0B,stroke-width:1.5px,color:#0F172A
+    style Ctrl fill:#FFFFFF,stroke:#10B981,stroke-width:1.5px,color:#0F172A
+
+    style Prisma fill:#FFFFFF,stroke:#2D3748,stroke-width:1.5px,color:#0F172A
+    style PG fill:#FFFFFF,stroke:#336791,stroke-width:1.5px,color:#0F172A
+    style IK fill:#FFFFFF,stroke:#2563EB,stroke-width:1.5px,color:#0F172A
+
+    linkStyle default stroke:#64748B,stroke-width:1.5px
+
 ```
 
 ### Request Lifecycle
@@ -116,33 +157,38 @@ erDiagram
     ARTIST }o--o{ SONG : performs
     ALBUM ||--o{ SONG : contains
     PLAYLIST }o--o{ SONG : includes
-    SONG ||--o{ LIKEDSONG : "liked as"
+    SONG ||--o{ LIKEDSONG : liked_as
 
     USER {
         string id PK
         string email
         string passwordHash
     }
+
     ARTIST {
         string id PK
         string name
     }
+
     ALBUM {
         string id PK
         string title
         string artistId FK
     }
+
     SONG {
         string id PK
         string title
         string audioUrl
         string albumId FK
     }
+
     PLAYLIST {
         string id PK
         string name
         string userId FK
     }
+
     LIKEDSONG {
         string userId FK
         string songId FK
