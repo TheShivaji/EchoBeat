@@ -1,12 +1,15 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { useAuth } from "../hook/authUse";
 
 const Applayout = () => {
+    const { handleLogout } = useAuth();
+
     return (
         <div className="min-h-screen bg-[#0c0c0c] flex">
 
             {/* Fixed sidebar — 240px on md+ */}
-            <Sidebar />
+            <Sidebar onLogout={handleLogout} />
 
             {/* Main content — offset by sidebar width */}
             <main

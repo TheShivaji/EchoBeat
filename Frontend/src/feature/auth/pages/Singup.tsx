@@ -47,8 +47,10 @@ const SignupPage = () => {
         e.preventDefault();
         if (password !== confirmPassword) return;
         try {
-            await handleSignup({ name, email, password, role });
-            navigate("/");
+            const success = await handleSignup({ name, email, password, role });
+            if (success) {
+                navigate("/");
+            }
         } catch (err) {
             console.log("Error in signup", err);
         }

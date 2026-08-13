@@ -24,8 +24,10 @@ const LoginPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await handleLogin({ email, password });
-        navigate("/");
+        const success = await handleLogin({ email, password });
+        if (success) {
+            navigate("/");
+        }
     };
 
     return (

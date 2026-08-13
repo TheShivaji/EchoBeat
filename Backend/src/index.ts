@@ -26,7 +26,7 @@ app.use(cookieParser());
 
 
 app.use('/api/user', authRouter);
-app.use('/api/song', songRouter);
+app.use('/api/songs', songRouter);
 app.use('/api/album', albumRouter);
 app.use('/api/playlist', playlistRouter);
 app.use('/api/artist', artistRouter);

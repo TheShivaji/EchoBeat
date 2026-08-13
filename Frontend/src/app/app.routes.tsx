@@ -6,6 +6,7 @@ import { Protected } from "../feature/auth/components/Protected";
 import Applayout from "../feature/auth/layout/Applayout";
 import PublicRoute from "../feature/auth/components/PublicRoute";
 import NotFound from "../feature/auth/pages/NotFound";
+import Upload from "../feature/upload/page/UploadPage"
 
 const appRouter = createBrowserRouter([
     {
@@ -21,6 +22,7 @@ const appRouter = createBrowserRouter([
             },
         ],
     },
+
     {
         element: <Protected />,
         children: [
@@ -29,16 +31,26 @@ const appRouter = createBrowserRouter([
                 children: [
                     {
                         path: "/",
-                        element: <Home />
-                    }
-                ]
-            }
-        ]
+                        element: <Home />,
+                    },
+                    {
+                        element: <Protected requiredRole="ADMIN" />,
+                        children: [
+                            {
+                                path: "/upload",
+                                element: <Upload />,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
     },
+
     {
         path: "*",
-        element: <NotFound />
-    }
-])
+        element: <NotFound />,
+    },
+]);
 
-export default appRouter
+export default appRouter;

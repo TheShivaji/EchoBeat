@@ -10,6 +10,7 @@ import {
     History,
     LogOut,
     Music2,
+    Upload
 } from "lucide-react";
 import type { RootState } from "../../../app/app.store";
 import type { User } from "../types/auth.types";
@@ -124,7 +125,7 @@ interface SidebarProps {
 const Sidebar = ({ onLogout }: SidebarProps) => {
     const user = useSelector(
         (state: RootState) => state.auth.user
-    ) as (User & { username?: string }) | null;
+    ) as (User & { username?: string; role?: string }) | null;
 
     // Backend stores 'username' — use as display name fallback
     const displayName = user?.name || user?.username || "";
@@ -163,6 +164,18 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                             ))}
                         </ul>
                     </div>
+
+                    {/* Admin navigation */}
+                    {user?.role === "ADMIN" && (
+                        <div className="mb-8">
+                            <SectionLabel>Admin</SectionLabel>
+                            <ul className="space-y-0.5" role="list">
+                                <li>
+                                    <SidebarNavItem item={{ label: "Upload Song", to: "/upload", icon: <Upload size={16} strokeWidth={1.75} /> }} />
+                                </li>
+                            </ul>
+                        </div>
+                    )}
 
                     {/* Secondary navigation */}
                     <div>

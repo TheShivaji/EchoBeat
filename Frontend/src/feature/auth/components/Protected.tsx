@@ -1,18 +1,27 @@
-import { useSelector } from "react-redux"
+import { useSelector } from "react-redux";
+import { Navigate, Outlet } from "react-router-dom";
+import type { RootState } from "../../../app/app.store";
 
-import { Navigate, Outlet } from "react-router-dom"
-import type { RootState } from "../../../app/app.store"
-
-
-export const Protected = () => {
-  const { loading, isAuthenticated } = useSelector((state: RootState) => state.auth)
-  if (loading) {
-    return <div>loading...</div>
-  }
-  if (isAuthenticated) {
-    return <Outlet />
-  } else {
-    return <Navigate to="/login" />
-  }
-
+interface ProtectedProps {
+    requiredRole?: string;
 }
+
+export const Protected = ({ requiredRole }: ProtectedProps) => {
+    const { loading, isAuthenticated, user } = useSelector(
+        (state: RootState) => state.auth
+    );
+
+    if (loading) {
+        return <div>loading...</div>;
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (requiredRole && user?.role !== requiredRole) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <Outlet />;
+};

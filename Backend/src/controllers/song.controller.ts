@@ -4,6 +4,7 @@ import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { prisma } from "../config/db.js";
 import { imagekit } from "../utils/multer.js";
 import { AnyNull } from "@prisma/client/runtime/client";
+import { extractEmbeddedCover } from "../utils/audioMetadata.js";
 
 
 async function addToAlbum(albumID: string, songID: string, action: string, res: Response) {
@@ -54,96 +55,170 @@ async function addToAlbum(albumID: string, songID: string, action: string, res: 
 
 export const uploadSong = async (req: AuthRequest, res: Response) => {
     try {
+        const files = req.files as {
+            [fieldname: string]: Express.Multer.File[];
+        };
 
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+        const audioFile = files["audioFile"]?.[0];
+        const imageFile = files["imageFile"]?.[0];
 
-        const audioFile = files['audioFile']?.[0]
-        const imageFile = files['imageFile']?.[0]
-
-        if (!audioFile || !imageFile) {
-            return res.status(400).json({ message: "Please upload both audio and image files" })
+        // Audio is required
+        if (!audioFile) {
+            return res.status(400).json({
+                success: false,
+                message: "Please upload an audio file",
+            });
         }
 
-        const audioUploadPromise = imagekit.upload({
-            file: audioFile.buffer,
-            fileName: audioFile.originalname,
-            folder: "Songs"
-        })
+        const {
+            title,
+            artistId,
+            duration,
+            category,
+            albumID,
+        } = req.body;
 
-        const imageUploadPromise = imagekit.upload({
-            file: imageFile.buffer,
-            fileName: imageFile.originalname,
-            folder: "Songs/Images",
-
-        })
-
-        const [audioUploadResponse, imageUploadResponse] = await Promise.all([audioUploadPromise, imageUploadPromise])
-
-        const { title, artistId, duration, category, albumID } = req.body
-
+        // Basic validation
         if (!title || !artistId || !duration) {
-            return res.status(400).json({ message: "Please fill all the details (title, artistId, duration)" })
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Please fill all the details (title, artistId, duration)",
+            });
         }
 
+        const DEFAULT_IMAGE_URL =
+            "your-imagekit-default-cover-url";
+
+        // Check artist
         const artistExists = await prisma.artist.findFirst({
             where: {
                 id: String(artistId),
-                isDeleted: false
-            }
+                isDeleted: false,
+            },
         });
+
         if (!artistExists) {
-            return res.status(404).json({ message: "Artist not found" });
+            return res.status(404).json({
+                success: false,
+                message: "Artist not found",
+            });
         }
 
-        const song = await prisma.song.create({
-            data: {
-                title: title,
-                artists: {
-                    connect: { id: String(artistId) }
-                },
-                audioUrl: audioUploadResponse.url,
-                imageUrl: imageUploadResponse.url,
-                duration: parseInt(duration, 10),
-                category: category,
-                albumID: albumID || null
-            }
-        })
-
-
+        // Check album if provided
         if (albumID) {
             const albumExists = await prisma.album.findFirst({
                 where: {
-                    id: albumID
-                }
-            })
+                    id: String(albumID),
+                },
+            });
+
             if (!albumExists) {
                 return res.status(404).json({
-                    message: "Album not found"
+                    success: false,
+                    message: "Album not found",
                 });
             }
-            await prisma.album.update({
-                where: {
-                    id: albumID
-                },
-                data: {
-                    songs: {
-                        connect: {
-                            id: song.id
-                        }
-                    }
-                }
-            })
         }
 
-        return res.status(200).json({
+        // Extract embedded cover from audio
+        const embeddedCover = await extractEmbeddedCover(
+            audioFile.buffer,
+            audioFile.mimetype
+        );
+
+        // Audio upload
+        const audioUploadPromise = imagekit.upload({
+            file: audioFile.buffer,
+            fileName: audioFile.originalname,
+            folder: "Songs",
+        });
+
+        // Cover upload
+        let imageUploadPromise;
+
+        if (imageFile) {
+            // Priority 1: User uploaded cover
+            imageUploadPromise = imagekit.upload({
+                file: imageFile.buffer,
+                fileName: imageFile.originalname,
+                folder: "Songs/Images",
+            });
+        } else if (embeddedCover) {
+            // Priority 2: Embedded cover from audio
+            imageUploadPromise = imagekit.upload({
+                file: embeddedCover.buffer,
+                fileName:
+                    audioFile.originalname.split(".")[0] +
+                    "-cover",
+                folder: "Songs/Images",
+            });
+        } else {
+            // Priority 3: Default cover
+            imageUploadPromise = Promise.resolve(null);
+        }
+
+        // Upload audio and cover in parallel
+        const [
+            audioUploadResponse,
+            imageUploadResponse,
+        ] = await Promise.all([
+            audioUploadPromise,
+            imageUploadPromise,
+        ]);
+
+        // Final image URL
+        const imageUrl =
+            imageUploadResponse?.url ?? DEFAULT_IMAGE_URL;
+
+        // Create song
+        const song = await prisma.song.create({
+            data: {
+                title: String(title),
+
+                artists: {
+                    connect: {
+                        id: String(artistId),
+                    },
+                },
+
+                audioUrl: audioUploadResponse.url,
+                imageUrl,
+
+                duration: parseInt(String(duration), 10),
+
+                category: category
+                    ? String(category)
+                    : null,
+
+                releasedDate: new Date().toISOString(),
+
+                ...(albumID
+                    ? {
+                          album: {
+                              connect: {
+                                  id: String(albumID),
+                              },
+                          },
+                      }
+                    : {}),
+            },
+        });
+
+        return res.status(201).json({
+            success: true,
             message: "Song uploaded successfully",
-            song
-        })
+            song,
+        });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error" })
+        console.error("Upload Song Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
     }
-}
+};
 
 export const deleteSong = async (req: AuthRequest, res: Response) => {
     try {

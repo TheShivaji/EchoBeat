@@ -1,9 +1,10 @@
 import { useDispatch } from "react-redux";
-import { setUser, setError, setLoading } from "../state/authSlice";
+import { setUser, setError, setLoading, logout } from "../state/authSlice";
 import {
     getCurrentUser,
     loginApi,
-    registerApi
+    registerApi,
+    logoutApi
 } from "../api/auth.api";
 import type {
     SignupUser,
@@ -16,6 +17,9 @@ import axios from "axios";
 
 
 const getErrorMessage = (error: unknown): string => {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+        return error.response.data.message;
+    }
     if (error instanceof Error) {
         return error.message;
     }
@@ -38,7 +42,7 @@ export const useAuth = () => {
         toast.error(errorMsg);
     };
 
-    const handleSignup = async (user: SignupUser) => {
+    const handleSignup = async (user: SignupUser): Promise<boolean> => {
         dispatch(setLoading(true));
         dispatch(setError(null));
 
@@ -47,15 +51,17 @@ export const useAuth = () => {
 
             if (res?.success) {
                 handleAuthSuccess(res);
+                return true;
             }
         } catch (error) {
             handleAuthError(error);
         } finally {
             dispatch(setLoading(false));
         }
+        return false;
     };
 
-    const handleLogin = async (user: LoginUser) => {
+    const handleLogin = async (user: LoginUser): Promise<boolean> => {
         dispatch(setLoading(true));
         dispatch(setError(null));
 
@@ -64,12 +70,14 @@ export const useAuth = () => {
 
             if (res?.success) {
                 handleAuthSuccess(res);
+                return true;
             }
         } catch (error) {
             handleAuthError(error);
         } finally {
             dispatch(setLoading(false));
         }
+        return false;
     };
 
     const handleGetCurrentUser = async () => {
@@ -95,9 +103,23 @@ export const useAuth = () => {
         }
     };
 
+    const handleLogout = async () => {
+        dispatch(setLoading(true));
+        try {
+            await logoutApi();
+            dispatch(logout());
+            toast.success("Logged out successfully");
+        } catch (error) {
+            handleAuthError(error);
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
     return {
         handleLogin,
         handleSignup,
-        handleGetCurrentUser
+        handleGetCurrentUser,
+        handleLogout
     };
 };
