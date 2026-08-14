@@ -7,6 +7,7 @@ import Applayout from "../feature/auth/layout/Applayout";
 import PublicRoute from "../feature/auth/components/PublicRoute";
 import NotFound from "../feature/auth/pages/NotFound";
 import Upload from "../feature/upload/page/UploadPage"
+import CreateArtist from "../feature/artists/pages/CreateArtistPage";
 
 const appRouter = createBrowserRouter([
     {
@@ -39,6 +40,10 @@ const appRouter = createBrowserRouter([
                             {
                                 path: "/upload",
                                 element: <Upload />,
+                            },
+                            {
+                                path: "/create-artist",
+                                element: <CreateArtist />,
                             },
                         ],
                     },

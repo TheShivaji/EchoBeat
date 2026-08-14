@@ -10,7 +10,7 @@ export const createArtist = async (req: AuthRequest, res: Response) => {
 
 
         if (!name || !bio) {
-            return res.status(400).json({ message: "Name and bio are required" });
+            return res.status(400).json({ success: false, message: "Name and bio are required" });
         }
 
 
@@ -27,12 +27,12 @@ export const createArtist = async (req: AuthRequest, res: Response) => {
         });
 
         if (alreadyExist) {
-            return res.status(400).json({ message: "Artist already exists" });
+            return res.status(400).json({ success: false, message: "Artist already exists" });
         }
 
 
         if (!req.file) {
-            return res.status(400).json({ message: "Image file is required" });
+            return res.status(400).json({ success: false, message: "Image file is required" });
         }
         const imageFile = req.file;
 
@@ -44,7 +44,7 @@ export const createArtist = async (req: AuthRequest, res: Response) => {
         });
 
         if (!imageKitResponse.url) {
-            return res.status(400).json({ message: "Failed to upload image" });
+            return res.status(400).json({ success: false, message: "Failed to upload image" });
         }
 
         const artist = await prisma.artist.create({
@@ -57,16 +57,16 @@ export const createArtist = async (req: AuthRequest, res: Response) => {
 
         if (!artist) {
             await imagekit.deleteFile(imageKitResponse.fileId);
-            return res.status(400).json({ message: "Failed to create artist" });
+            return res.status(400).json({ success: false, message: "Failed to create artist" });
         }
 
-        return res.status(201).json({ message: "Artist created successfully", artist });
+        return res.status(201).json({ success: true, message: "Artist created successfully", artist });
     } catch (error: any) {
         if (error.code === 'P2002') {
-            return res.status(400).json({ message: "Artist already exists!" });
+            return res.status(400).json({ success: false, message: "Artist already exists!" });
         }
         console.error("Error creating artist:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -127,13 +127,13 @@ export const getArtistSongs = async (req: AuthRequest, res: Response) => {
         }
 
         const artist = await prisma.artist.findUnique({
-            where:{
-                id:String(artistId)
+            where: {
+                id: String(artistId)
             }
         })
-        if(artist?.isDeleted === true){
+        if (artist?.isDeleted === true) {
             return res.status(404).json({
-                message:"artist no founded"
+                message: "artist no founded"
             })
         }
 
@@ -321,7 +321,7 @@ export const deleteArtist = async (req: AuthRequest, res: Response) => {
                 id: String(artistId)
             }
         });
-        
+
         if (!artist || artist.isDeleted) {
             return res.status(404).json({
                 message: "Artist does not exist or is already deleted"

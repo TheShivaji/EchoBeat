@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FormField } from "./FormField";
 import { AudioUploader } from "./AudioUploader";
 import { CoverUploader } from "./CoverUploader";
 import type { UploadSongData } from "../types/upload.type";
 import { Loader2 } from "lucide-react";
+import { ArtistSelector } from "./ArtistSelector";
+import { useArtists } from "../../artists/hook/useArtists";
 
 interface UploadSongFormProps {
     formData: Partial<UploadSongData>;
@@ -22,6 +24,13 @@ export const UploadSongForm: React.FC<UploadSongFormProps> = ({
     uploadProgress,
     error,
 }) => {
+    const { artists, loading: artistsLoading, handleGetAllArtist } = useArtists();
+
+    useEffect(() => {
+        handleGetAllArtist();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData((prev) => ({
             ...prev,
@@ -73,12 +82,11 @@ export const UploadSongForm: React.FC<UploadSongFormProps> = ({
                         />
                         <div className="flex flex-col sm:flex-row gap-6">
                             <div className="flex-1">
-                                <FormField
-                                    label="Artist"
-                                    id="artistId"
-                                    value={formData.artistId || ""}
-                                    onChange={handleChange}
-                                    placeholder="Select or enter artist ID"
+                                <ArtistSelector
+                                    artists={artists}
+                                    loading={artistsLoading}
+                                    selectedArtistId={formData.artistId || ""}
+                                    onChange={(id) => setFormData(prev => ({ ...prev, artistId: id }))}
                                     disabled={loading}
                                 />
                             </div>

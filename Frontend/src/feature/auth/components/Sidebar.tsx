@@ -10,7 +10,8 @@ import {
     History,
     LogOut,
     Music2,
-    Upload
+    Upload,
+    UserPlus
 } from "lucide-react";
 import type { RootState } from "../../../app/app.store";
 import type { User } from "../types/auth.types";
@@ -172,6 +173,9 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                             <ul className="space-y-0.5" role="list">
                                 <li>
                                     <SidebarNavItem item={{ label: "Upload Song", to: "/upload", icon: <Upload size={16} strokeWidth={1.75} /> }} />
+                                </li>
+                                <li>
+                                    <SidebarNavItem item={{ label: "Create Artist", to: "/create-artist", icon: <UserPlus size={16} strokeWidth={1.75} /> }} />
                                 </li>
                             </ul>
                         </div>

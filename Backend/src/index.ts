@@ -29,7 +29,7 @@ app.use('/api/user', authRouter);
 app.use('/api/songs', songRouter);
 app.use('/api/album', albumRouter);
 app.use('/api/playlist', playlistRouter);
-app.use('/api/artist', artistRouter);
+app.use('/api/artists', artistRouter);
 app.use('/api/search', searchRouter)
 app.use('/api/history', historyRouter);
 app.use('/api/home', homeRouter);
