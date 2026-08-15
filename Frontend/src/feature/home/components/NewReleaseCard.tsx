@@ -1,18 +1,23 @@
 import { Play, Music } from "lucide-react";
 import type { Song } from "../types/home.types";
+import { useNavigate } from "react-router-dom";
 
 interface NewReleaseCardProps {
     song: Song;
 }
 
 const NewReleaseCard = ({ song }: NewReleaseCardProps) => {
+    const navigate = useNavigate();
     const primaryArtist = song.artists[0]?.name ?? "Unknown Artist";
     const releaseYear = song.releasedDate
         ? new Date(song.releasedDate).getFullYear()
         : null;
 
     return (
-        <div className="group flex-shrink-0 w-[160px] cursor-pointer">
+        <div 
+            onClick={() => navigate(`/song/${song.id}`)}
+            className="group flex-shrink-0 w-[160px] cursor-pointer"
+        >
             {/* Artwork */}
             <div className="relative w-full aspect-square rounded-md overflow-hidden bg-[#1a1a1a] border border-[#222222] mb-3">
                 {song.imageUrl ? (

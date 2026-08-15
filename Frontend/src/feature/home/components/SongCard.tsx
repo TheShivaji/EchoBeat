@@ -1,5 +1,6 @@
 import { Play, Music } from "lucide-react";
 import type { Song } from "../types/home.types";
+import { useNavigate } from "react-router-dom";
 
 interface SongCardProps {
     song: Song;
@@ -8,10 +9,14 @@ interface SongCardProps {
 }
 
 const SongCard = ({ song, index, showIndex = false }: SongCardProps) => {
+    const navigate = useNavigate();
     const primaryArtist = song.artists[0]?.name ?? "Unknown Artist";
 
     return (
-        <div className="group flex items-center gap-4 px-3 py-2.5 rounded-md hover:bg-[#181818] transition-colors duration-150 cursor-pointer">
+        <div 
+            onClick={() => navigate(`/song/${song.id}`)}
+            className="group flex items-center gap-4 px-3 py-2.5 rounded-md hover:bg-[#181818] transition-colors duration-150 cursor-pointer"
+        >
 
             {/* Track number or artwork */}
             <div className="relative flex-shrink-0 w-10 h-10">

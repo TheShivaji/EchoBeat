@@ -195,12 +195,12 @@ export const uploadSong = async (req: AuthRequest, res: Response) => {
 
                 ...(albumID
                     ? {
-                          album: {
-                              connect: {
-                                  id: String(albumID),
-                              },
-                          },
-                      }
+                        album: {
+                            connect: {
+                                id: String(albumID),
+                            },
+                        },
+                    }
                     : {}),
             },
         });
@@ -287,7 +287,8 @@ export const getSongDetails = async (req: AuthRequest, res: Response) => {
         const { songID } = req.params  // Bug 1 Fix: destructure kiya
 
         if (!songID || typeof songID !== "string") {
-            return res.status(400).json({   // Bug 2 Fix: response → res
+            return res.status(400).json({
+                success: false,
                 message: "Song ID is required"
             })
         }
@@ -303,14 +304,34 @@ export const getSongDetails = async (req: AuthRequest, res: Response) => {
         })
 
         if (!song) {
-            return res.status(404).json({   // Bug 3 Fix: response → res
+            return res.status(404).json({
+                success: false,
                 message: "Song not found"
             })
         }
 
+        const songLikeDetails = await prisma.likedSong.findUnique({
+            where: {
+                userId_songId: {
+                    userId: req.user.id,
+                    songId: songID
+                }
+            }
+        })
+        const isLiked = songLikeDetails !== null;
+
+        const likeCount = await prisma.likedSong.count({
+            where: {
+                songId: songID
+            }
+        })
+
         return res.status(200).json({
+            success: true,
             message: "Song details fetched successfully",
-            song
+            song,
+            isLiked,
+            likeCount
         })
     } catch (error) {
         console.log(error);

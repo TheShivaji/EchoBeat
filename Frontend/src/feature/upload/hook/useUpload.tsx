@@ -28,7 +28,6 @@ export const handleupload = () => {
             setError(errorMessage)
         } finally {
             setLoading(false)
-            setError(null)
             setUploadprogress(0)
         }
     }

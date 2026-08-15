@@ -8,6 +8,7 @@ import PublicRoute from "../feature/auth/components/PublicRoute";
 import NotFound from "../feature/auth/pages/NotFound";
 import Upload from "../feature/upload/page/UploadPage"
 import CreateArtist from "../feature/artists/pages/CreateArtistPage";
+import SongDetailsPage from "../feature/song/pages/SongDetailsPage";
 
 const appRouter = createBrowserRouter([
     {
@@ -33,6 +34,10 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/",
                         element: <Home />,
+                    },
+                    {
+                        path: "/song/:id",
+                        element: <SongDetailsPage />
                     },
                     {
                         element: <Protected requiredRole="ADMIN" />,

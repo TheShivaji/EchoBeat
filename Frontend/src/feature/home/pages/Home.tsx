@@ -6,7 +6,7 @@ import ArtistCard from "../components/ArtistCard";
 import SongCard from "../components/SongCard";
 import NewReleaseCard from "../components/NewReleaseCard";
 import { getGreeting } from "../utils/home.utils";
-import { MOCK_HOME_DATA } from "../utils/home.mock"; // TODO: Remove when real API data is ready
+
 import type { PlayHistoryItem, Song } from "../types/home.types";
 
 // ─── Horizontal scroll row ────────────────────────────────────────────────────
@@ -20,13 +20,13 @@ const HScrollRow = ({ children }: { children: React.ReactNode }) => (
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
 const Home = () => {
-    // TEMPORARY: Bypassing useHome hook so you can see the UI with dummy data
-    // const { homeData, loading, error, refetch } = useHome();
-    // if (loading) return <HomeSkeleton />;
-    // if (error) return <HomeError onRetry={refetch} />;
-    // if (!homeData) return null;
+    // Using real API data
+    const { homeData, loading, error, refetch } = useHome();
+    if (loading) return <HomeSkeleton />;
+    if (error) return <HomeError onRetry={refetch} />;
+    if (!homeData) return null;
 
-    const { popularArtists, popularSongs, newReleases, recentlyPlayed } = MOCK_HOME_DATA;
+    const { popularArtists, popularSongs, newReleases, recentlyPlayed } = homeData;
 
     const hasArtists = popularArtists.length > 0;
     const hasSongs = popularSongs.length > 0;

@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { getHomeData } from "../api/home.api";
 
-interface HomeData {
-    popularArtists: unknown[];
-    popularSongs: unknown[];
-    newReleases: unknown[];
-    recentlyPlayed?: unknown[];
-}
+import type { HomeData } from "../types/home.types";
 
 export const useHome = () => {
     const [homeData, setHomeData] = useState<HomeData | null>(null);

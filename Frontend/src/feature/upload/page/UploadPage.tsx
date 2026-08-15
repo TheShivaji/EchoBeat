@@ -3,9 +3,11 @@ import { UploadSongForm } from "../components/UploadSongForm";
 import type { UploadSongData } from "../types/upload.type";
 import { handleupload as useUpload } from "../hook/useUpload";
 import { CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const UploadPage: React.FC = () => {
     const { uploadSong, loading, error, uploadprogres } = useUpload();
+    const navigate = useNavigate();
     const [success, setSuccess] = useState(false);
 
     const [formData, setFormData] = useState<Partial<UploadSongData>>({
@@ -39,19 +41,10 @@ export const UploadPage: React.FC = () => {
         
         if (response) {
             setSuccess(true);
-            setFormData({
-                title: "",
-                artistId: "",
-                albumID: "",
-                category: "",
-                duration: 0,
-                audioFile: undefined,
-                imageFile: undefined,
-            });
-            // Hide success message after 4 seconds
+            // Hide success message and navigate after 1.5 seconds
             setTimeout(() => {
-                setSuccess(false);
-            }, 4000);
+                navigate("/");
+            }, 1500);
         }
     };
 
