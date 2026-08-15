@@ -23,3 +23,18 @@ export const getAllArtistsApi = async () => {
     const response = await api.get("/get-all-artists");
     return response.data
 }
+
+export const getArtistDetails = async(id: string) =>{
+    const response = await api.get(`/artist/${id}`);
+    return response.data
+}
+
+export const getArtistSongsApi = async (id: string, page: number = 1, limit: number = 10) => {
+    const response = await api.get(`/artist/${id}/songs`, { params: { page, limit } });
+    return response.data;
+}
+
+export const getArtistAlbumsApi = async (id: string, page: number = 1, limit: number = 10) => {
+    const response = await api.get(`/artists/${id}/album`, { params: { page, limit } });
+    return response.data;
+}

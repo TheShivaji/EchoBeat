@@ -9,6 +9,10 @@ import NotFound from "../feature/auth/pages/NotFound";
 import Upload from "../feature/upload/page/UploadPage"
 import CreateArtist from "../feature/artists/pages/CreateArtistPage";
 import SongDetailsPage from "../feature/song/pages/SongDetailsPage";
+import ArtistDetailsPage from "../feature/artists/pages/ArtistDetailsPage";
+import AllArtistsPage from "../feature/artists/pages/AllArtistsPage";
+import ArtistSongsPage from "../feature/artists/pages/ArtistSongsPage";
+import ArtistAlbumsPage from "../feature/artists/pages/ArtistAlbumsPage";
 
 const appRouter = createBrowserRouter([
     {
@@ -38,6 +42,22 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/song/:id",
                         element: <SongDetailsPage />
+                    },
+                    {
+                        path: "/artist/:id",
+                        element: <ArtistDetailsPage />
+                    },
+                    {
+                        path: "/artist/:id/songs",
+                        element: <ArtistSongsPage />
+                    },
+                    {
+                        path: "/artist/:id/albums",
+                        element: <ArtistAlbumsPage />
+                    },
+                    {
+                        path: "/artists",
+                        element: <AllArtistsPage />
                     },
                     {
                         element: <Protected requiredRole="ADMIN" />,

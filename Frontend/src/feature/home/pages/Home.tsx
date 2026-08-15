@@ -1,4 +1,5 @@
 import { useHome } from "../hook/useHome";
+import { Link } from "react-router-dom";
 import HomeSkeleton from "../components/HomeSkeleton";
 import HomeError from "../components/HomeError";
 import SectionHeader from "../components/SectionHeader";
@@ -54,7 +55,7 @@ const Home = () => {
                 <section className="mb-14" aria-labelledby="popular-artists-heading">
                     <SectionHeader
                         title="Popular Artists"
-                        action="See all"
+                        action={<Link to="/artists">See all</Link>}
                     />
                     <HScrollRow>
                         {popularArtists.map((artist) => (

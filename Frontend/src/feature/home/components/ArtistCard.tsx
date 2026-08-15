@@ -1,12 +1,19 @@
 import { UserRound } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Artist } from "../types/home.types";
 
 interface ArtistCardProps {
     artist: Artist;
 }
 
-const ArtistCard = ({ artist }: ArtistCardProps) => (
-    <div className="group flex-shrink-0 w-[140px] cursor-pointer">
+const ArtistCard = ({ artist }: ArtistCardProps) => {
+    const navigate = useNavigate();
+    
+    return (
+        <div 
+            onClick={() => navigate(`/artist/${artist.id}`)}
+            className="group flex-shrink-0 w-[140px] cursor-pointer"
+        >
         {/* Artist image */}
         <div className="relative w-full aspect-square rounded-full overflow-hidden bg-[#1a1a1a] border border-[#222222] mb-3">
             {artist.imageUrl ? (
@@ -37,6 +44,7 @@ const ArtistCard = ({ artist }: ArtistCardProps) => (
             </p>
         )}
     </div>
-);
+    );
+};
 
 export default ArtistCard;
