@@ -1,5 +1,6 @@
 import { UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import type { Artist } from "../types/home.types";
 
 interface ArtistCardProps {
@@ -10,9 +11,11 @@ const ArtistCard = ({ artist }: ArtistCardProps) => {
     const navigate = useNavigate();
     
     return (
-        <div 
+        <motion.div 
             onClick={() => navigate(`/artist/${artist.id}`)}
-            className="group flex-shrink-0 w-[140px] cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group flex-shrink-0 w-[110px] md:w-[140px] cursor-pointer"
         >
         {/* Artist image */}
         <div className="relative w-full aspect-square rounded-full overflow-hidden bg-[#1a1a1a] border border-[#222222] mb-3">
@@ -43,7 +46,7 @@ const ArtistCard = ({ artist }: ArtistCardProps) => {
                 {artist.playCount.toLocaleString()} plays
             </p>
         )}
-    </div>
+    </motion.div>
     );
 };
 

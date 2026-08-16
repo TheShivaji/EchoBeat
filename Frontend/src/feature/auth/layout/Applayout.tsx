@@ -13,7 +13,7 @@ const Applayout = () => {
 
             {/* Main content — offset by sidebar width */}
             <main
-                className="flex-1 md:ml-[240px] min-h-screen"
+                className="flex-1 md:ml-[240px] min-h-screen min-w-0 overflow-x-hidden"
                 id="main-content"
             >
                 {/* Mobile bottom-nav safe area */}

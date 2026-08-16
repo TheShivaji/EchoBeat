@@ -1,6 +1,7 @@
 import { Play, Music } from "lucide-react";
 import type { Song } from "../types/home.types";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface SongCardProps {
     song: Song;
@@ -13,8 +14,10 @@ const SongCard = ({ song, index, showIndex = false }: SongCardProps) => {
     const primaryArtist = song.artists[0]?.name ?? "Unknown Artist";
 
     return (
-        <div 
+        <motion.div 
             onClick={() => navigate(`/song/${song.id}`)}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             className="group flex items-center gap-4 px-3 py-2.5 rounded-md hover:bg-[#181818] transition-colors duration-150 cursor-pointer"
         >
 
@@ -63,7 +66,7 @@ const SongCard = ({ song, index, showIndex = false }: SongCardProps) => {
                     {song.playCount.toLocaleString()}
                 </span>
             )}
-        </div>
+        </motion.div>
     );
 };
 

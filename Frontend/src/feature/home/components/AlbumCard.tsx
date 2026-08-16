@@ -1,5 +1,6 @@
 import { Disc3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import type { Album } from "../../song/types/song.type";
 
 interface AlbumCardProps {
@@ -10,9 +11,11 @@ export const AlbumCard = ({ album }: AlbumCardProps) => {
     const navigate = useNavigate();
     
     return (
-        <div 
+        <motion.div 
             onClick={() => navigate(`/album/${album.id}`)}
-            className="group flex-shrink-0 w-[140px] cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group flex-shrink-0 w-[120px] md:w-[140px] cursor-pointer"
         >
             <div className="relative w-full aspect-square mb-3">
                 <div className="w-full h-full rounded-md overflow-hidden bg-[#282828] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
@@ -39,6 +42,6 @@ export const AlbumCard = ({ album }: AlbumCardProps) => {
                     Album {album.releaseYear ? `• ${album.releaseYear}` : ''}
                 </span>
             </div>
-        </div>
+        </motion.div>
     );
 };

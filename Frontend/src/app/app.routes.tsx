@@ -13,6 +13,8 @@ import ArtistDetailsPage from "../feature/artists/pages/ArtistDetailsPage";
 import AllArtistsPage from "../feature/artists/pages/AllArtistsPage";
 import ArtistSongsPage from "../feature/artists/pages/ArtistSongsPage";
 import ArtistAlbumsPage from "../feature/artists/pages/ArtistAlbumsPage";
+import AllAlbumsPage from "../feature/album/pages/AllAlbumsPage";
+import NewReleasesPage from "../feature/song/pages/NewReleasesPage";
 
 const appRouter = createBrowserRouter([
     {
@@ -58,6 +60,14 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/artists",
                         element: <AllArtistsPage />
+                    },
+                    {
+                        path: "/albums",
+                        element: <AllAlbumsPage />
+                    },
+                    {
+                        path: "/new-releases",
+                        element: <NewReleasesPage />
                     },
                     {
                         element: <Protected requiredRole="ADMIN" />,

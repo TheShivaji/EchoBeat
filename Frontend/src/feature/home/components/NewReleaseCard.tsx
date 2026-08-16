@@ -1,6 +1,7 @@
 import { Play, Music } from "lucide-react";
 import type { Song } from "../types/home.types";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface NewReleaseCardProps {
     song: Song;
@@ -14,9 +15,11 @@ const NewReleaseCard = ({ song }: NewReleaseCardProps) => {
         : null;
 
     return (
-        <div 
+        <motion.div 
             onClick={() => navigate(`/song/${song.id}`)}
-            className="group flex-shrink-0 w-[160px] cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group flex-shrink-0 w-[130px] md:w-[160px] cursor-pointer"
         >
             {/* Artwork */}
             <div className="relative w-full aspect-square rounded-md overflow-hidden bg-[#1a1a1a] border border-[#222222] mb-3">
@@ -60,7 +63,7 @@ const NewReleaseCard = ({ song }: NewReleaseCardProps) => {
                     <span className="text-[#444444]"> · {releaseYear}</span>
                 )}
             </p>
-        </div>
+        </motion.div>
     );
 };
 

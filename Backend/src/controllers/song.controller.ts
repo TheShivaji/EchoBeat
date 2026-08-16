@@ -282,6 +282,53 @@ export const getAllSongs = async (req: AuthRequest, res: Response) => {
         return res.status(500).json({ message: "Internal server error" })
     }
 }
+
+export const getNewReleasesPaginated = async (req: AuthRequest, res: Response) => {
+    try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        
+        if (page < 1 || limit < 1) {
+            return res.status(400).json({ message: "Invalid pagination params" });
+        }
+
+        const skip = (page - 1) * limit;
+
+        const newReleases = await prisma.song.findMany({
+            where: {
+                isDeleted: false,
+                artists: {
+                    none: {
+                        isDeleted: true
+                    }
+                }
+            },
+            include: {
+                artists: {
+                    where: {
+                        isDeleted: false
+                    }
+                }
+            },
+            orderBy: {
+                releasedDate: "desc"
+            },
+            skip,
+            take: limit
+        });
+
+        const hasMore = newReleases.length === limit;
+
+        return res.status(200).json({
+            success: true,
+            songs: newReleases,
+            hasMore
+        });
+    } catch (error) {
+        console.error("Get New Releases Paginated Error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
 export const getSongDetails = async (req: AuthRequest, res: Response) => {
     try {
         const { songID } = req.params  // Bug 1 Fix: destructure kiya
