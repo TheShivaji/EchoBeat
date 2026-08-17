@@ -16,3 +16,8 @@ export const handleGetNewReleases = async (page: number = 1, limit: number = 20)
     const response = await api.get(`/new-releases?page=${page}&limit=${limit}`);
     return response.data;
 }
+
+export const handleGetLikedSongs = async () => {
+    const response = await api.get("/liked-songs");
+    return response.data;
+}

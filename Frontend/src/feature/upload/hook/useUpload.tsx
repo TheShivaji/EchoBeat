@@ -1,5 +1,5 @@
 import { uploadSongApi } from "../api/upload.api";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { UploadSongData } from "../types/upload.type";
 
 
@@ -9,7 +9,7 @@ export const handleupload = () => {
     const [error, setError] = useState<string | null>(null)
     const [uploadprogres, setUploadprogress] = useState(0)
 
-    const uploadSong = async (data: UploadSongData) => {
+    const uploadSong = useCallback(async (data: UploadSongData) => {
         try {
             setLoading(true)
             setError(null)
@@ -30,7 +30,7 @@ export const handleupload = () => {
             setLoading(false)
             setUploadprogress(0)
         }
-    }
+    }, []);
 
 
     return {

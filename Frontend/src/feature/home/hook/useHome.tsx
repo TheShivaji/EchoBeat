@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { getHomeData } from "../api/home.api";
 
 import type { HomeData } from "../types/home.types";
@@ -8,7 +8,7 @@ export const useHome = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchHomeData = async () => {
+    const fetchHomeData = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -26,7 +26,7 @@ export const useHome = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchHomeData();

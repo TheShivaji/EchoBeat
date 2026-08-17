@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
 
 import { getAllArtistsApi, getArtistDetails, uploadArtistApi, getArtistSongsApi, getArtistAlbumsApi } from "../api/artists.api";
@@ -14,7 +14,7 @@ export const useArtists = () => {
     const [artistAlbums, setArtistAlbums] = useState<any[]>([]);
     const [albumsPagination, setAlbumsPagination] = useState<any>(null);
 
-    const handleUploadArtist = async (data: UploadArtists) => {
+    const handleUploadArtist = useCallback(async (data: UploadArtists) => {
         try {
             setLoading(true);
             setError(null);
@@ -41,9 +41,9 @@ export const useArtists = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const handleGetAllArtist = async () => {
+    const handleGetAllArtist = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -69,9 +69,9 @@ export const useArtists = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
-    const getArtistDeatils = async (id: string) => {
+    const getArtistDeatils = useCallback(async (id: string) => {
         try {
             setLoading(true);
             setError(null);
@@ -97,10 +97,10 @@ export const useArtists = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
     
 
-    const getArtistSongs = async (id: string, page = 1, limit = 10) => {
+    const getArtistSongs = useCallback(async (id: string, page = 1, limit = 10) => {
         try {
             setLoading(true);
             setError(null);
@@ -125,9 +125,9 @@ export const useArtists = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const getArtistAlbums = async (id: string, page = 1, limit = 10) => {
+    const getArtistAlbums = useCallback(async (id: string, page = 1, limit = 10) => {
         try {
             setLoading(true);
             setError(null);
@@ -151,7 +151,7 @@ export const useArtists = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     return {
         artists,

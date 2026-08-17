@@ -15,6 +15,12 @@ import ArtistSongsPage from "../feature/artists/pages/ArtistSongsPage";
 import ArtistAlbumsPage from "../feature/artists/pages/ArtistAlbumsPage";
 import AllAlbumsPage from "../feature/album/pages/AllAlbumsPage";
 import NewReleasesPage from "../feature/song/pages/NewReleasesPage";
+import CreateAlbumPage from "../feature/album/pages/CreateAlbumPage";
+import CreatePlaylistPage from "../feature/playlist/pages/CreatePlaylistPage";
+import MyPlaylistsPage from "../feature/playlist/pages/MyPlaylistsPage";
+import PlaylistDetailsPage from "../feature/playlist/pages/PlaylistDetailsPage";
+import LikedSongsPage from "../feature/song/pages/LikedSongsPage";
+import AlbumDetailsPage from "../feature/album/pages/AlbumDetailsPage";
 
 const appRouter = createBrowserRouter([
     {
@@ -40,6 +46,10 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/",
                         element: <Home />,
+                    },
+                    {
+                        path: "/create-playlist",
+                        element: <CreatePlaylistPage />,
                     },
                     {
                         path: "/song/:id",
@@ -70,6 +80,22 @@ const appRouter = createBrowserRouter([
                         element: <NewReleasesPage />
                     },
                     {
+                        path: "/playlists",
+                        element: <MyPlaylistsPage />
+                    },
+                    {
+                        path: "/playlist/:id",
+                        element: <PlaylistDetailsPage />
+                    },
+                    {
+                        path: "/liked",
+                        element: <LikedSongsPage />
+                    },
+                    {
+                        path: "/album/:id",
+                        element: <AlbumDetailsPage />
+                    },
+                    {
                         element: <Protected requiredRole="ADMIN" />,
                         children: [
                             {
@@ -79,6 +105,10 @@ const appRouter = createBrowserRouter([
                             {
                                 path: "/create-artist",
                                 element: <CreateArtist />,
+                            },
+                            {
+                                path: "/create-album",
+                                element: <CreateAlbumPage />,
                             },
                         ],
                     },

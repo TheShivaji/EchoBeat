@@ -1,5 +1,5 @@
 import React from "react";
-import { FormField } from "../../upload/components/FormField";
+import { FormField } from "../../../components/shared/FormField";
 import { ArtistImageUploader } from "./ArtistImageUploader";
 import { Loader2 } from "lucide-react";
 

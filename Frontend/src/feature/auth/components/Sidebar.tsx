@@ -177,6 +177,10 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                                 <li>
                                     <SidebarNavItem item={{ label: "Create Artist", to: "/create-artist", icon: <UserPlus size={16} strokeWidth={1.75} /> }} />
                                 </li>
+                                
+                                <li>
+                                    <SidebarNavItem item={{ label: "Create Album", to: "/create-album", icon: <Music2 size={16} strokeWidth={1.75} /> }} />
+                                </li>
                             </ul>
                         </div>
                     )}

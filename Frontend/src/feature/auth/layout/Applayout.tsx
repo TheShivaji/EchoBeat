@@ -16,7 +16,6 @@ const Applayout = () => {
                 className="flex-1 md:ml-[240px] min-h-screen min-w-0 overflow-x-hidden"
                 id="main-content"
             >
-                {/* Mobile bottom-nav safe area */}
                 <div className="pb-16 md:pb-0">
                     <Outlet />
                 </div>

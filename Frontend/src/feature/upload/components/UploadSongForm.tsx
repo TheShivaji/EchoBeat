@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { FormField } from "./FormField";
+import { FormField } from "../../../components/shared/FormField";
 import { AudioUploader } from "./AudioUploader";
 import { CoverUploader } from "./CoverUploader";
 import type { UploadSongData } from "../types/upload.type";

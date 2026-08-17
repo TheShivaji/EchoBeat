@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { handleGetAlbumDetails, handleGetAllAlbums } from "../api/album.api";
+import { useState, useCallback } from "react";
+import { handleCreateAlbum, handleGetAlbumDetails, handleGetAllAlbums } from "../api/album.api";
 import type { Album } from "../types/album.types";
 
 export const useAlbum = () => {
     const [allAlbums, setAllAlbums] = useState<Album[]>([]);
-    const [album, setAlbum] = useState<Album | null>(null); 
+    const [album, setAlbum] = useState<Album | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const getAllAlbums = async () => {
+    const getAllAlbums = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const response = await handleGetAllAlbums();
-            
+
             if (response && response.albums) {
                 setAllAlbums(response.albums);
             }
@@ -24,9 +24,9 @@ export const useAlbum = () => {
         } finally {
             setLoading(false);
         }
-    }
-    
-    const getAlbumDetails = async (id: string) => {
+    }, [])
+
+    const getAlbumDetails = useCallback(async (id: string) => {
         setLoading(true);
         setError(null);
         try {
@@ -41,16 +41,29 @@ export const useAlbum = () => {
         } finally {
             setLoading(false);
         }
-    }
+    }, [])
 
-    
+    const createAlbum = useCallback(async (data: { title: string; artistId: string; releaseYear: number; imageFile: File | null }) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await handleCreateAlbum(data);
+            return response;
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Failed to create album");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         allAlbums,
         album,
         loading,
         error,
         getAllAlbums,
-        getAlbumDetails
+        getAlbumDetails,
+        createAlbum
     };
 };
-

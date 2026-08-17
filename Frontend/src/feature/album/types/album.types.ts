@@ -5,7 +5,9 @@ import type { Artist } from "../../artists/types/artists.types";
 
 export interface Album {
     id: string;
+    artistId:string,
     title: string;
+    imageFile: File | null;
     imageUrl: string;
     releaseYear: number | null;
     createdAt: string;

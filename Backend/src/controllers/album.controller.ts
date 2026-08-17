@@ -1,13 +1,15 @@
 import { prisma } from "../config/db.js"
+import { imagekit } from "../utils/multer.js"
 import type { AuthRequest } from "../middleware/auth.middleware.js"
 import type { Response } from "express"
 
 export const createAlbum = async(req:AuthRequest , res:Response) =>{
     try {
-        const {artistId , imageUrl , title , releaseYear } = req.body
+        const {artistId , title , releaseYear } = req.body;
+        const imageFile = req.file;
 
-        if(!artistId || !imageUrl || !title || !releaseYear ){
-            return res.status(400).json({message:"All fields (including artistId) are required"})
+        if(!artistId || !title || !releaseYear ){
+            return res.status(400).json({message:"All fields (title, artistId, releaseYear) are required"})
         }
 
         const parsedReleaseYear = parseInt(releaseYear, 10);
@@ -26,10 +28,21 @@ export const createAlbum = async(req:AuthRequest , res:Response) =>{
             return res.status(404).json({ message: "Artist not found" });
         }
 
+        let finalImageUrl = "default-album-cover-url"; // Change to your default if needed
+
+        if (imageFile) {
+            const uploadResponse = await imagekit.upload({
+                file: imageFile.buffer,
+                fileName: imageFile.originalname,
+                folder: "Albums/Images",
+            });
+            finalImageUrl = uploadResponse.url;
+        }
+
         const album = await prisma.album.create({
             data:{
                 title,
-                imageUrl,
+                imageUrl: finalImageUrl,
                 releaseYear: parsedReleaseYear,
                 artists: {
                     connect: { id: String(artistId) }
