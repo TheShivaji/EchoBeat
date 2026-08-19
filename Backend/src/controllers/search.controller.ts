@@ -2,7 +2,6 @@ import { prisma } from "../config/db.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import type { Response } from "express";
 import { Prisma } from "@prisma/client";
-import { title } from "node:process";
 
 const validation = async function (res: Response, req: AuthRequest) {
     const { q, page = 1, limit = 20 } = req.query;
@@ -60,15 +59,10 @@ export const searchArtists = async (req: AuthRequest, res: Response) => {
             }
         })
 
-        if (artist.length === 0) {
-            return res.status(404).json({
-                message: "Artist Not Founded"
-            })
-        }
-
         return res.status(200).json({
-            message: "artist founded",
-            artist,
+            success: true,
+            message: "artists found",
+            artists: artist,
             pagination: {
                 total: totalArtists,
                 page,
@@ -126,19 +120,14 @@ export const searchSong = async function (req: AuthRequest, res: Response) {
 
         });
 
-        if (song.length === 0) {
-            return res.status(404).json({
-                message: "Songs Not Founded"
-            })
-        }
-
         const totalSong = await prisma.song.count({
             where
         })
 
         return res.status(200).json({
-            message: "song founded",
-            song,
+            success: true,
+            message: "songs found",
+            songs: song,
             pagination: {
                 total: Number(totalSong),
                 page,
@@ -192,19 +181,14 @@ export const searchAlbum = async (req: AuthRequest, res: Response) => {
             take
         })
 
-        if (album.length === 0) {
-            return res.status(404).json({
-                message: "Albums Not Founded"
-            })
-        }
-
         const totalAlbum = await prisma.album.count({
             where
         })
 
         return res.status(200).json({
-            message: "album founded",
-            album,
+            success: true,
+            message: "albums found",
+            albums: album,
             pagination: {
                 total: Number(totalAlbum),
                 page,
@@ -251,19 +235,14 @@ export const searchPlaylist = async (req: AuthRequest, res: Response) => {
             }
         })
 
-        if (playlist.length === 0) {
-            return res.status(404).json({
-                message: "Playlists Not Founded"
-            })
-        }
-
         const totalPlaylist = await prisma.playlist.count({
             where
         })
 
         return res.status(200).json({
-            message: "playlist founded",
-            playlist,
+            success: true,
+            message: "playlists found",
+            playlists: playlist,
             pagination: {
                 total: Number(totalPlaylist),
                 page,

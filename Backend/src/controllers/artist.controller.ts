@@ -149,10 +149,6 @@ export const getArtistSongs = async (req: AuthRequest, res: Response) => {
             take: Number(limit),
 
         })
-        if (songs.length === 0) {
-            return res.status(404).json({ message: "No songs found" })
-        }
-
         const totalSongs = await prisma.song.count({
             where: {
                 artists: {
@@ -217,11 +213,6 @@ export const getArtistAlbam = async (req: AuthRequest, res: Response) => {
                 songs: true,
             }
         });
-
-        if (albums.length === 0) {
-            return res.status(404).json({ message: "No albums found" });
-        }
-
 
         const totalAlbums = await prisma.album.count({
             where: {

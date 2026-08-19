@@ -21,6 +21,7 @@ import MyPlaylistsPage from "../feature/playlist/pages/MyPlaylistsPage";
 import PlaylistDetailsPage from "../feature/playlist/pages/PlaylistDetailsPage";
 import LikedSongsPage from "../feature/song/pages/LikedSongsPage";
 import AlbumDetailsPage from "../feature/album/pages/AlbumDetailsPage";
+import SearchPage from "../feature/search/pages/SearchPage";
 
 const appRouter = createBrowserRouter([
     {
@@ -94,6 +95,10 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/album/:id",
                         element: <AlbumDetailsPage />
+                    },
+                    {
+                        path: "/search",
+                        element: <SearchPage />
                     },
                     {
                         element: <Protected requiredRole="ADMIN" />,
