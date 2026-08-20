@@ -115,9 +115,10 @@ export const searchSong = async function (req: AuthRequest, res: Response) {
         const song = await prisma.song.findMany({
             where,
             skip,
-            take
-
-
+            take,
+            include: {
+                artists: true
+            }
         });
 
         const totalSong = await prisma.song.count({

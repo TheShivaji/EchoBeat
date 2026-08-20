@@ -30,7 +30,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     const renderSongs = () => {
         if (songs.length === 0) return null;
         return (
-            <GridContainer title={activeTab === 'all' ? 'Songs' : undefined}>
+            <GridContainer>
                 {songs.map(song => (
                     <SongCard key={song.id} song={song} />
                 ))}
@@ -41,7 +41,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     const renderArtists = () => {
         if (artists.length === 0) return null;
         return (
-            <GridContainer title={activeTab === 'all' ? 'Artists' : undefined}>
+            <GridContainer>
                 {artists.map(artist => (
                     <ArtistCard key={artist.id} artist={artist} />
                 ))}
@@ -52,7 +52,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     const renderAlbums = () => {
         if (albums.length === 0) return null;
         return (
-            <GridContainer title={activeTab === 'all' ? 'Albums' : undefined}>
+            <GridContainer>
                 {albums.map(album => (
                     <AlbumCard key={album.id} album={album} />
                 ))}
@@ -63,7 +63,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     const renderPlaylists = () => {
         if (playlists.length === 0) return null;
         return (
-            <GridContainer title={activeTab === 'all' ? 'Playlists' : undefined}>
+            <GridContainer>
                 {playlists.map(playlist => (
                     <PlaylistCard key={playlist.id} playlist={playlist} />
                 ))}
@@ -81,10 +81,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
     return (
         <div className="w-full flex flex-col pt-4">
-            {(activeTab === 'all' || activeTab === 'songs') && renderSongs()}
-            {(activeTab === 'all' || activeTab === 'artists') && renderArtists()}
-            {(activeTab === 'all' || activeTab === 'albums') && renderAlbums()}
-            {(activeTab === 'all' || activeTab === 'playlists') && renderPlaylists()}
+            {activeTab === 'songs' && renderSongs()}
+            {activeTab === 'artists' && renderArtists()}
+            {activeTab === 'albums' && renderAlbums()}
+            {activeTab === 'playlists' && renderPlaylists()}
         </div>
     );
 };

@@ -3,7 +3,7 @@ import type { Artist } from "../../artists/types/artists.types";
 import type { Album } from "../../album/types/album.types";
 import type { Playlist } from "../../playlist/types/playlist.types";
 
-export type SearchTabType = 'all' | 'songs' | 'artists' | 'albums' | 'playlists';
+export type SearchTabType = 'songs' | 'artists' | 'albums' | 'playlists';
 
 export interface SearchInputProps {
     value: string;

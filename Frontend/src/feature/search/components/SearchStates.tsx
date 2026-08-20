@@ -23,17 +23,17 @@ export const SearchLoadingState: React.FC = () => {
     );
 };
 
-export const SearchEmptyState: React.FC<SearchStatesProps> = ({ query }) => {
+export const SearchEmptyState: React.FC<SearchStatesProps & { activeTab: string }> = ({ query, activeTab }) => {
     return (
         <div className="flex flex-col items-center justify-center w-full py-20 text-center px-4">
             <div className="w-16 h-16 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-6">
                 <Search className="w-8 h-8 text-[#888888]" />
             </div>
             <h3 className="text-xl font-medium text-[#ededed] mb-2">
-                No results found for "{query}"
+                No {activeTab} found
             </h3>
             <p className="text-sm text-[#888888] max-w-[400px]">
-                Please make sure your words are spelled correctly or use less or different keywords.
+                Try a different search.
             </p>
         </div>
     );

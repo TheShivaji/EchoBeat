@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SearchInput } from "../components/SearchInput";
 import { SearchTabs } from "../components/SearchTabs";
 import { SearchResults } from "../components/SearchResults";
@@ -39,7 +39,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
 }) => {
 
     const [query, setQuery] = useState(initialQuery);
-    const [activeTab, setActiveTab] = useState<SearchTabType>('all');
+    const [activeTab, setActiveTab] = useState<SearchTabType>('songs');
 
     const {
         artists: searchArtists,
@@ -52,34 +52,40 @@ const SearchPage: React.FC<SearchPageProps> = ({
         handleSearchAlbum,
         handleSearchSong,
         handleSearchPlaylist,
-        controllerRef
+
     } = useSearch();
+
+    const timerRef = useRef(null)
 
     const currentArtists = searchArtists.length > 0 ? searchArtists : artists;
     const currentAlbums = searchAlbums.length > 0 ? searchAlbums : albums;
     const currentPlaylists = searchPlaylists.length > 0 ? searchPlaylists : playlists;
     const currentSongs = searchSongs.length > 0 ? searchSongs : songs;
 
-    const isLoading = loading || searchLoading.artists || searchLoading.albums || searchLoading.songs || searchLoading.playlists;
+    const isTabLoading = 
+        activeTab === "artists" ? searchLoading.artists :
+        activeTab === "albums" ? searchLoading.albums :
+        activeTab === "songs" ? searchLoading.songs :
+        activeTab === "playlists" ? searchLoading.playlists : false;
+
+    const isLoading = loading || isTabLoading;
     const hasError = error || !!searchError;
 
-    const isInitial = query.trim().length === 0 && !isLoading && !hasError;
-    const hasResults = currentSongs.length > 0 || currentArtists.length > 0 || currentAlbums.length > 0 || currentPlaylists.length > 0;
+    const isInitial = query.trim().length === 0;
+
+    const activeTabResults = 
+        activeTab === "artists" ? currentArtists :
+        activeTab === "albums" ? currentAlbums :
+        activeTab === "songs" ? currentSongs :
+        activeTab === "playlists" ? currentPlaylists : [];
+
+    const hasResults = activeTabResults.length > 0;
     const isEmpty = !isInitial && !isLoading && !hasError && !hasResults;
 
-    const controller = new AbortController();
+    const handleSearch = async (query: any) => {
 
-    controllerRef.current = controller;
-
-    const handleSearchSubmit = (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-
-        if (activeTab === "all") {
-            handleSearchArtist(query);
-            handleSearchAlbum(query);
-            handleSearchSong(query);
-            handleSearchPlaylist(query);
-        } else if (activeTab === "artists") {
+        
+        if (activeTab === "artists") {
             handleSearchArtist(query);
         } else if (activeTab === "albums") {
             handleSearchAlbum(query);
@@ -88,6 +94,42 @@ const SearchPage: React.FC<SearchPageProps> = ({
         } else if (activeTab === "playlists") {
             handleSearchPlaylist(query);
         }
+    }
+    useEffect(() => {
+        console.log("EFFECT RUN", {
+            query,
+            activeTab,
+        });
+        console.log("MOUNT");
+
+    
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+
+        if (query.trim().length === 0) {
+            return;
+        }
+
+        timerRef.current = setTimeout(() => {
+            handleSearch(query)
+        }, 500)
+
+        console.log("MOUNT");
+
+    return () => {
+        console.log("UNMOUNT");
+    };
+
+    }, [query, activeTab])
+
+
+
+
+    const handleSearchSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+
+        await handleSearch(query)
 
         console.log(activeTab);
         console.log(`Search Query is : ${query}`);
@@ -127,15 +169,15 @@ const SearchPage: React.FC<SearchPageProps> = ({
             <main className="flex-grow flex flex-col">
                 {isInitial && <SearchInitialState />}
 
-                {isLoading && <SearchLoadingState />}
+                {!isInitial && isLoading && <SearchLoadingState />}
 
-                {hasError && !isLoading && <SearchErrorState />}
+                {!isInitial && !isLoading && hasError && <SearchErrorState />}
 
-                {isEmpty && !isInitial && !isLoading && !hasError && (
-                    <SearchEmptyState query={query} />
+                {isEmpty && (
+                    <SearchEmptyState query={query} activeTab={activeTab} />
                 )}
 
-                {hasResults && !isLoading && !hasError && (
+                {!isInitial && !isLoading && !hasError && hasResults && (
                     <SearchResults
                         activeTab={activeTab}
                         songs={currentSongs}

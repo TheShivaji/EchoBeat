@@ -3,7 +3,6 @@ import type { SearchTabsProps, SearchTabType } from "../types/search.types";
 
 export const SearchTabs: React.FC<SearchTabsProps> = ({ activeTab, onTabChange }) => {
     const tabs: { id: SearchTabType; label: string }[] = [
-        { id: 'all', label: 'All' },
         { id: 'songs', label: 'Songs' },
         { id: 'artists', label: 'Artists' },
         { id: 'albums', label: 'Albums' },

@@ -20,6 +20,14 @@ export const useSearch = () => {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [songs, setSongs] = useState<Song[]>([]);
     const controllerRef = useRef<AbortController | null>(null);
+    const requestIdRef = useRef(0);
+
+    const cacheRef = useRef<Record<string, {
+        data: any;
+        timeStamp: number;
+    }>>({});
+
+
 
     const [loading, setLoading] = useState({
         artists: false,
@@ -30,47 +38,103 @@ export const useSearch = () => {
 
     const [error, setError] = useState<string | null>(null);
 
-    const handleSearchArtist = async (
-        q: string,
-        page: number = 1,
-        limit: number = 20
-    ) => {
+    const handleControlAndReq = () => {
         if (controllerRef.current) {
             controllerRef.current.abort();
         }
         controllerRef.current = new AbortController();
         const signal = controllerRef.current.signal;
 
-        try {
-            setLoading((prev) => ({
-                ...prev,
-                artists: true,
-            }));
+        requestIdRef.current += 1;
+        const requestId = requestIdRef.current;
 
-            setError(null);
+        return {
+            signal,
+            requestId
+        }
+    }
+
+    const catchError = (error: any, defaultMessage = "Failed to search") => {
+        if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
+            console.log('Request was cancelled:', error.message);
+        }
+        else {
+            setError(
+                error?.response?.data?.message ||
+                defaultMessage
+            );
+        }
+
+        return error;
+    }
+
+
+
+    const cachedFunction = (q: string, type: 'artists' | 'albums' | 'songs' | 'playlists') => {
+        const key = `${type}:${q.trim().toLowerCase()}`;
+
+        const cached = cacheRef.current[key];
+
+
+        if (cached) {
+            const now = Date.now();
+            const expiryTime = cached.timeStamp + 30 * 60 * 1000;
+
+            if (now < expiryTime) {
+                return { key, isCached: true, data: cached.data };
+            }
+        }
+
+        return { key, isCached: false, data: null };
+    }
+
+    const handleSearchArtist = async (
+        q: string,
+        page: number = 1,
+        limit: number = 20
+    ) => {
+
+        const { signal, requestId } = handleControlAndReq()
+
+        setLoading((prev) => ({
+            ...prev,
+            artists: true,
+        }));
+
+        setError(null);
+
+
+        try {
+            const cachedata = cachedFunction(q, 'artists');
+            if (cachedata.isCached) {
+                setArtists(cachedata.data.artists);
+                return;
+            }
+
 
             const result = await searchArtistsAPI(q, page, limit, signal);
 
+            if (requestId !== requestIdRef.current) return;
+
             if (result.success) {
                 setArtists(result.artists);
+
+                cacheRef.current[cachedata.key] = {
+                    data: result,
+                    timeStamp: Date.now()
+                };
             }
         } catch (error: any) {
-            if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
-                console.log('Request was cancelled:', error.message);
-            }
-            else {
-                setError(
-                    error?.response?.data?.message ||
-                    "Failed to search songs"
-                );
-            }
+            return catchError(error, "Failed to search artists");
 
-            return error;
+
         } finally {
-            setLoading((prev) => ({
-                ...prev,
-                artists: false,
-            }));
+            if (requestId === requestIdRef.current) {
+                setLoading((prev) => ({
+                    ...prev,
+                    artists: false,
+                }));
+            }
         }
     };
 
@@ -79,43 +143,44 @@ export const useSearch = () => {
         page: number = 1,
         limit: number = 20
     ) => {
-        if (controllerRef.current) {
-            controllerRef.current.abort();
-        }
-        controllerRef.current = new AbortController();
-        const signal = controllerRef.current.signal;
+        const { signal, requestId } = handleControlAndReq()
+
+        setLoading((prev) => ({
+            ...prev,
+            albums: true,
+        }));
+
+        setError(null);
 
         try {
-            setLoading((prev) => ({
-                ...prev,
-                albums: true,
-            }));
-
-            setError(null);
+            const cachedata = cachedFunction(q, 'albums');
+            if (cachedata.isCached) {
+                setAlbums(cachedata.data.albums);
+                return;
+            }
 
             const result = await searchAlbumsAPI(q, page, limit, signal);
 
+            if (requestId !== requestIdRef.current) return;
             if (result.success) {
                 setAlbums(result.albums);
+
+                cacheRef.current[cachedata.key] = {
+                    data: result,
+                    timeStamp: Date.now()
+                };
             }
         } catch (error: any) {
-            if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
-                console.log('Request was cancelled:', error.message);
-            }
-            else {
-                setError(
-                    error?.response?.data?.message ||
-                    "Failed to search songs"
-                );
-            }
+            return catchError(error, "Failed to search albums");
 
 
-            return error;
         } finally {
-            setLoading((prev) => ({
-                ...prev,
-                albums: false,
-            }));
+            if (requestId === requestIdRef.current) {
+                setLoading((prev) => ({
+                    ...prev,
+                    albums: false,
+                }));
+            }
         }
     };
 
@@ -124,42 +189,42 @@ export const useSearch = () => {
         page: number = 1,
         limit: number = 20
     ) => {
-        if (controllerRef.current) {
-            controllerRef.current.abort();
-        }
-        controllerRef.current = new AbortController();
-        const signal = controllerRef.current.signal;
+        const { signal, requestId } = handleControlAndReq()
+
+        setLoading((prev) => ({
+            ...prev,
+            songs: true,
+        }));
+
+        setError(null);
 
         try {
-            setLoading((prev) => ({
-                ...prev,
-                songs: true,
-            }));
-
-            setError(null);
+            const cachedata = cachedFunction(q, 'songs');
+            if (cachedata.isCached) {
+                setSongs(cachedata.data.songs);
+                return;
+            }
 
             const result = await searchSongsAPI(q, page, limit, signal);
 
+            if (requestId !== requestIdRef.current) return;
             if (result.success) {
                 setSongs(result.songs);
+
+                cacheRef.current[cachedata.key] = {
+                    data: result,
+                    timeStamp: Date.now()
+                };
             }
         } catch (error: any) {
-            if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
-                console.log('Request was cancelled:', error.message);
-            }
-            else {
-                setError(
-                    error?.response?.data?.message ||
-                    "Failed to search songs"
-                );
-            }
-
-            return error;
+            return catchError(error, "Failed to search songs");
         } finally {
-            setLoading((prev) => ({
-                ...prev,
-                songs: false,
-            }));
+            if (requestId === requestIdRef.current) {
+                setLoading((prev) => ({
+                    ...prev,
+                    songs: false,
+                }));
+            }
         }
     };
 
@@ -168,42 +233,45 @@ export const useSearch = () => {
         page: number = 1,
         limit: number = 20
     ) => {
-        if (controllerRef.current) {
-            controllerRef.current.abort();
-        }
-        controllerRef.current = new AbortController();
-        const signal = controllerRef.current.signal;
+        const { signal, requestId } = handleControlAndReq()
+
+        setLoading((prev) => ({
+            ...prev,
+            playlists: true,
+        }));
+
+        setError(null);
 
         try {
-            setLoading((prev) => ({
-                ...prev,
-                playlists: true,
-            }));
-
-            setError(null);
+            const cachedata = cachedFunction(q, 'playlists');
+            if (cachedata.isCached) {
+                setPlaylists(cachedata.data.playlists);
+                return;
+            }
 
             const result = await searchPlaylistsAPI(q, page, limit, signal);
 
+            if (requestId !== requestIdRef.current) return;
+
             if (result.success) {
                 setPlaylists(result.playlists);
+
+                cacheRef.current[cachedata.key] = {
+                    data: result,
+                    timeStamp: Date.now()
+                };
             }
         } catch (error: any) {
-            if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
-                console.log('Request was cancelled:', error.message);
-            }
-            else {
-                setError(
-                    error?.response?.data?.message ||
-                    "Failed to search songs"
-                );
-            }
+            return catchError(error, "Failed to search playlists");
 
-            return error;
+
         } finally {
-            setLoading((prev) => ({
-                ...prev,
-                playlists: false,
-            }));
+            if (requestId === requestIdRef.current) {
+                setLoading((prev) => ({
+                    ...prev,
+                    playlists: false,
+                }));
+            }
         }
     };
 
@@ -216,7 +284,7 @@ export const useSearch = () => {
         loading,
         error,
 
-        controllerRef,
+
 
         handleSearchArtist,
         handleSearchAlbum,
