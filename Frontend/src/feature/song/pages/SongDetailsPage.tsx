@@ -1,6 +1,9 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Play, Heart, Music } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Play, Pause, Heart, Music } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { setCurrentSong, togglePlay } from "../../players/state/playerSlice";
+import type { RootState } from "../../../app/app.store";
 import { useSong } from "../hook/useSong";
 import SongDetailsSkeleton from "../components/SongDetailsSkeleton";
 import SongDetailsError from "../components/SongDetailsError";
@@ -16,9 +19,15 @@ const formatDuration = (seconds: number) => {
 const SongDetailsPage = () => {
     // 1. Read song ID from URL parameters
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     
     // 2. Consume existing hook exactly as it is
     const { song, loading, error, getSongDetails } = useSong();
+
+    // Redux Global Player State
+    const dispatch = useDispatch();
+    const currentSong = useSelector((state: RootState) => state.player.currentSong);
+    const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
 
     // 3. Fetch song details on mount
     useEffect(() => {
@@ -107,12 +116,26 @@ const SongDetailsPage = () => {
                     {/* Actions */}
                     <div className="flex items-center gap-6 mt-auto">
                         
-                        {/* Play Button (Presentation Only) */}
+                        {/* Play Button */}
                         <button 
+                            onClick={() => {
+                                if (currentSong?.id === song.id) {
+                                    if (!isPlaying) {
+                                        dispatch(togglePlay());
+                                    }
+                                } else {
+                                    dispatch(setCurrentSong(song));
+                                }
+                                navigate("/player");
+                            }}
                             className="flex items-center justify-center w-14 h-14 rounded-full bg-[#f0f0f0] text-[#0c0c0c] hover:scale-105 transition-transform"
-                            aria-label="Play song"
+                            aria-label={currentSong?.id === song.id && isPlaying ? "Pause song" : "Play song"}
                         >
-                            <Play className="w-6 h-6 fill-current translate-x-0.5" />
+                            {currentSong?.id === song.id && isPlaying ? (
+                                <Pause className="w-6 h-6 fill-current" />
+                            ) : (
+                                <Play className="w-6 h-6 fill-current translate-x-0.5" />
+                            )}
                         </button>
                         
                         {/* Like Button (Presentation Only, derived directly from song object) */}

@@ -23,6 +23,8 @@ import LikedSongsPage from "../feature/song/pages/LikedSongsPage";
 import AlbumDetailsPage from "../feature/album/pages/AlbumDetailsPage";
 import SearchPage from "../feature/search/pages/SearchPage";
 
+import PlayerPage from "../feature/players/pages/PlayerPage";
+
 const appRouter = createBrowserRouter([
     {
         element: <PublicRoute />,
@@ -99,6 +101,10 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/search",
                         element: <SearchPage />
+                    },
+                    {
+                        path: "/player",
+                        element: <PlayerPage />
                     },
                     {
                         element: <Protected requiredRole="ADMIN" />,
