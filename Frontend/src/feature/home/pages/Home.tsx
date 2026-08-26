@@ -12,6 +12,8 @@ import SongCard from "../components/SongCard";
 import NewReleaseCard from "../components/NewReleaseCard";
 import { AlbumCard } from "../components/AlbumCard";
 import { getGreeting } from "../utils/home.utils";
+import { useDispatch } from "react-redux";
+import { setCurrentSong } from "../../players/state/playerSlice";
 
 import type { PlayHistoryItem, Song } from "../types/home.types";
 
@@ -24,7 +26,7 @@ const SectionWrapper = ({ children, id }: { children: React.ReactNode, id: strin
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="mb-14"
+        className="mb-10 md:mb-12"
     >
         {children}
     </motion.section>
@@ -163,6 +165,7 @@ const Home = () => {
     // Using real API data
     const { homeData, loading, error, refetch } = useHome();
     const { allAlbums, getAllAlbums, loading: albumLoading } = useAlbum();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         getAllAlbums();
@@ -181,20 +184,24 @@ const Home = () => {
     const hasAlbums = (allAlbums?.length ?? 0) > 0;
 
     return (
-        <div className="min-h-screen bg-[#0c0c0c] px-4 md:px-10 lg:px-12 py-8 md:py-10 pb-28 md:pb-10 overflow-x-hidden">
+        <div className="min-h-screen bg-[#0a0a0a] px-4 md:px-10 lg:px-12 py-8 md:py-10 pb-36 overflow-x-hidden">
+            <div className="max-w-[1600px] mx-auto relative">
 
             {/* ── Page header ──────────────────────────────────────────────── */}
-            <header className="mb-10 md:mb-14">
-                <p className="text-[11px] font-semibold text-[#555555] tracking-[0.14em] uppercase mb-2">
-                    {getGreeting()}
-                </p>
-                <h1
-                    className="text-[28px] md:text-[40px] font-normal text-[#ededed] leading-tight tracking-[-0.02em]"
-                    style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
-                >
-                    What do you want to hear?
-                </h1>
-            </header>
+            <div className="relative mb-10 md:mb-12 pt-4">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#1c1c1c] to-transparent opacity-50 -mx-4 md:-mx-10 lg:-mx-12 -mt-10 h-[280px] -z-10 pointer-events-none rounded-b-3xl" />
+                <header>
+                    <p className="text-[12px] font-bold text-[#a3a3a3] tracking-[0.15em] uppercase mb-2 ml-0.5">
+                        {getGreeting()}
+                    </p>
+                    <h1
+                        className="text-[36px] md:text-[46px] lg:text-[56px] font-normal text-white leading-tight tracking-[-0.02em]"
+                        style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+                    >
+                        What do you want to hear?
+                    </h1>
+                </header>
+            </div>
 
             {/* ── Popular Artists ───────────────────────────────────────────── */}
             {hasArtists && (
@@ -215,13 +222,14 @@ const Home = () => {
             {hasSongs && (
                 <SectionWrapper id="trending-heading">
                     <SectionHeader title="Trending Songs" />
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-0.5">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-1">
                         {popularSongs.map((song, index) => (
                             <SongCard
                                 key={song.id}
                                 song={song}
                                 index={index}
                                 showIndex
+                                variant="chart"
                             />
                         ))}
                     </div>
@@ -256,28 +264,48 @@ const Home = () => {
             )}
 
             {/* ── Recently Played ───────────────────────────────────────────── */}
-            {hasRecentlyPlayed && (
-                <SectionWrapper id="recently-played-heading">
-                    <SectionHeader title="Recently Played" />
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-0.5">
+            <SectionWrapper id="recently-played-heading">
+                <SectionHeader title="Recently Played" />
+                {hasRecentlyPlayed ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3">
                         {(recentlyPlayed as PlayHistoryItem[]).slice(0, 10).map((item) => (
                             <SongCard
                                 key={item.id}
                                 song={item.song as Song}
+                                variant="history"
+                                onClick={() => {
+                                    const queue = (recentlyPlayed as PlayHistoryItem[])
+                                        .map((rp) => rp.song as Song);
+                                    dispatch(setCurrentSong({
+                                        song: item.song as Song,
+                                        queue
+                                    }));
+                                }}
                             />
                         ))}
                     </div>
-                </SectionWrapper>
-            )}
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-10 bg-[#141414] rounded-xl border border-[#222]">
+                        <p className="text-[15px] font-medium text-[#ededed] mb-1">
+                            No recently played songs
+                        </p>
+                        <p className="text-[13px] text-[#888888]">
+                            Play a song and it will appear here.
+                        </p>
+                    </div>
+                )}
+            </SectionWrapper>
 
             {/* ── All sections empty ────────────────────────────────────────── */}
             {!hasArtists && !hasSongs && !hasNewReleases && !hasRecentlyPlayed && !hasAlbums && (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
-                    <p className="text-[14px] text-[#666666] font-normal max-w-[300px] leading-relaxed">
+                    <p className="text-[14px] text-[#888888] font-medium max-w-[300px] leading-relaxed">
                         No content available yet. Start listening to build your music library.
                     </p>
                 </div>
             )}
+            
+            </div>
         </div>
     );
 };

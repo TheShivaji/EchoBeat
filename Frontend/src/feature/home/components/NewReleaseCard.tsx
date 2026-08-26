@@ -19,34 +19,34 @@ const NewReleaseCard = ({ song }: NewReleaseCardProps) => {
             onClick={() => navigate(`/song/${song.id}`)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="group flex-shrink-0 w-[130px] md:w-[160px] cursor-pointer"
+            className="group flex-shrink-0 w-[140px] md:w-[170px] cursor-pointer"
         >
             {/* Artwork */}
-            <div className="relative w-full aspect-square rounded-md overflow-hidden bg-[#1a1a1a] border border-[#222222] mb-3">
+            <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-[#121212] border border-[#222] shadow-sm mb-3">
                 {song.imageUrl ? (
                     <img
                         src={song.imageUrl}
                         alt={song.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
                         <Music
-                            size={32}
+                            size={36}
                             strokeWidth={1}
-                            className="text-[#333333]"
+                            className="text-[#444]"
                             aria-hidden="true"
                         />
                     </div>
                 )}
 
                 {/* Play overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0c0c0c]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="w-10 h-10 rounded-full bg-[#f0f0f0] flex items-center justify-center shadow-lg">
+                <div className="absolute inset-0 flex items-end justify-end p-2 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="w-11 h-11 rounded-full bg-[#8c52ff] translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out flex items-center justify-center shadow-lg hover:scale-105 hover:bg-[#9d6aff]">
                         <Play
-                            size={16}
+                            size={18}
                             strokeWidth={2}
-                            className="text-[#0c0c0c] fill-[#0c0c0c] ml-0.5"
+                            className="text-white fill-white ml-1"
                             aria-hidden="true"
                         />
                     </div>
@@ -54,13 +54,13 @@ const NewReleaseCard = ({ song }: NewReleaseCardProps) => {
             </div>
 
             {/* Metadata */}
-            <p className="text-[13px] font-medium text-[#d0d0d0] group-hover:text-[#ededed] transition-colors duration-150 truncate leading-tight">
+            <p className="text-[14px] font-semibold text-[#ededed] group-hover:text-white transition-colors duration-300 truncate leading-tight">
                 {song.title}
             </p>
-            <p className="mt-1 text-[11.5px] font-normal text-[#666666] truncate leading-tight">
+            <p className="mt-1 text-[12px] font-medium text-[#888] truncate leading-tight">
                 {primaryArtist}
                 {releaseYear && (
-                    <span className="text-[#444444]"> · {releaseYear}</span>
+                    <span className="text-[#555]"> · {releaseYear}</span>
                 )}
             </p>
         </motion.div>

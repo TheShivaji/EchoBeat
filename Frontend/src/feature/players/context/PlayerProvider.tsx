@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../app/app.store";
-import { setIsPlaying, setVolume } from "../state/playerSlice";
+import { setIsPlaying, setVolume, setCurrentSong } from "../state/playerSlice";
+import { recordPlayHistory } from "../api/history.api";
 
 interface PlayerContextType {
     currentTime: number;
@@ -12,6 +13,8 @@ interface PlayerContextType {
     handleSeek: (event: React.MouseEvent<HTMLDivElement>) => void;
     handleVolumeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     toggleMute: () => void;
+    nextSong: () => void;
+    previousSong: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -26,13 +29,13 @@ export const usePlayerContext = () => {
 
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const dispatch = useDispatch();
-    
-    
+
     const currentSong = useSelector((state: RootState) => state.player.currentSong);
     const isPlaying = useSelector((state: RootState) => state.player.isPlaying);
     const volume = useSelector((state: RootState) => state.player.volume);
+    const queue = useSelector((state: RootState) => state.player.queue);
+    const currentIndex = useSelector((state: RootState) => state.player.currentIndex);
 
- 
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
@@ -41,7 +44,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const volumeRef = useRef(1);
     const progressBarRef = useRef<HTMLDivElement | null>(null);
 
-    
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio || !currentSong) return;
@@ -52,8 +54,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             audio.currentTime = 0;
             setCurrentTime(0);
             audio.load();
+            
+            // Record play history
+            recordPlayHistory(currentSong.id);
         }
-        
+
         audio.volume = volume;
 
         if (isPlaying) {
@@ -74,7 +79,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Audio Event Handlers
     const handlePlayEvent = () => dispatch(setIsPlaying(true));
     const handlePauseEvent = () => dispatch(setIsPlaying(false));
-    
+
     const handleTimeUpdate = () => {
         if (audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);
@@ -132,6 +137,42 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
     };
 
+    const nextSong = () => {
+        let newIndex: number;
+
+        if (currentIndex === queue.length - 1) {
+            newIndex = 0;
+        } else {
+            newIndex = currentIndex + 1;
+        }
+
+        const nextS = queue[newIndex];
+
+        dispatch(
+            setCurrentSong({
+                song: nextS,
+                queue: [...queue],
+            })
+        );
+    };
+
+    const previousSong = () => {
+        let newIndex: number;
+        if (currentIndex === 0) {
+            newIndex = queue.length - 1
+        } else {
+            newIndex = currentIndex - 1
+        }
+        const previous = queue[newIndex]
+        dispatch(
+            setCurrentSong({
+                song: previous,
+                queue: [...queue],
+            })
+        );
+    };
+
+
     const contextValue = {
         currentTime,
         duration,
@@ -141,12 +182,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         handleSeek,
         handleVolumeChange,
         toggleMute,
+        nextSong,
+        previousSong
     };
 
     return (
         <PlayerContext.Provider value={contextValue}>
             {children}
-            {/* Exactly ONE global audio element */ }
+            {/* Exactly ONE global audio element */}
             <audio
                 ref={audioRef}
                 onTimeUpdate={handleTimeUpdate}

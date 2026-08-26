@@ -7,6 +7,7 @@ import type { RootState } from "../../../app/app.store";
 import { useSong } from "../hook/useSong";
 import SongDetailsSkeleton from "../components/SongDetailsSkeleton";
 import SongDetailsError from "../components/SongDetailsError";
+import SongCard from "../../home/components/SongCard";
 
 // Helper to format duration from seconds to m:ss
 const formatDuration = (seconds: number) => {
@@ -21,8 +22,8 @@ const SongDetailsPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
-    // 2. Consume existing hook exactly as it is
-    const { song, loading, error, getSongDetails } = useSong();
+    // 2. Consume existing hook exactly as it is (now with relatedSongs)
+    const { song, relatedSongs, loading, error, getSongDetails } = useSong();
 
     // Redux Global Player State
     const dispatch = useDispatch();
@@ -124,7 +125,7 @@ const SongDetailsPage = () => {
                                         dispatch(togglePlay());
                                     }
                                 } else {
-                                    dispatch(setCurrentSong(song));
+                                    dispatch(setCurrentSong({ song: song, queue: [song, ...(relatedSongs || [])] }));
                                 }
                                 navigate("/player");
                             }}
@@ -158,6 +159,36 @@ const SongDetailsPage = () => {
                 </div>
                 
             </div>
+
+            {/* ── More by Artist (Bottom Section) ────────────────────── */}
+            {relatedSongs && (
+                <div className="mt-16 md:mt-24 pt-8 border-t border-[#222]">
+                    <h3 className="text-xl md:text-2xl font-bold text-[#ededed] mb-6">
+                        More by {artistNames}
+                    </h3>
+                    
+                    {relatedSongs.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                            {relatedSongs.map((relatedSong, index) => (
+                                <div key={relatedSong.id} className="w-full">
+                                    <SongCard
+                                        song={relatedSong}
+                                        index={index}
+                                        showIndex={false}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center bg-[#141414] rounded-xl border border-[#222]">
+                            <Music size={32} className="text-[#555] mb-4" />
+                            <p className="text-[#a7a7a7] text-sm font-medium">
+                                No other songs from this artist
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

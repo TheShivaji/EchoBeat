@@ -18,19 +18,19 @@ const ArtistCard = ({ artist }: ArtistCardProps) => {
             className="group flex-shrink-0 w-[110px] md:w-[140px] cursor-pointer"
         >
         {/* Artist image */}
-        <div className="relative w-full aspect-square rounded-full overflow-hidden bg-[#1a1a1a] border border-[#222222] mb-3">
+        <div className="relative w-full aspect-square rounded-full overflow-hidden bg-[#121212] border border-[#222] shadow-sm group-hover:shadow-[0_4px_24px_rgba(255,255,255,0.03)] group-hover:border-[#333] transition-all duration-300 ease-out mb-4">
             {artist.imageUrl ? (
                 <img
                     src={artist.imageUrl}
                     alt={artist.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 />
             ) : (
                 <div className="w-full h-full flex items-center justify-center">
                     <UserRound
-                        size={36}
+                        size={40}
                         strokeWidth={1}
-                        className="text-[#333333]"
+                        className="text-[#444]"
                         aria-hidden="true"
                     />
                 </div>
@@ -38,11 +38,11 @@ const ArtistCard = ({ artist }: ArtistCardProps) => {
         </div>
 
         {/* Artist info */}
-        <p className="text-[13.5px] font-medium text-[#d0d0d0] group-hover:text-[#ededed] transition-colors duration-150 truncate text-center leading-tight">
+        <p className="text-[14px] font-semibold text-[#ededed] group-hover:text-white transition-colors duration-300 truncate text-center leading-tight">
             {artist.name}
         </p>
         {artist.playCount !== undefined && (
-            <p className="mt-0.5 text-[11.5px] font-normal text-[#555555] text-center">
+            <p className="mt-1 text-[12px] font-medium text-[#777] text-center tracking-wide uppercase">
                 {artist.playCount.toLocaleString()} plays
             </p>
         )}

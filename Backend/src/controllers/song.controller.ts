@@ -287,7 +287,7 @@ export const getNewReleasesPaginated = async (req: AuthRequest, res: Response) =
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
-        
+
         if (page < 1 || limit < 1) {
             return res.status(400).json({ message: "Invalid pagination params" });
         }
@@ -373,12 +373,31 @@ export const getSongDetails = async (req: AuthRequest, res: Response) => {
             }
         })
 
+        const primaryArtistId = song.artists[0]?.id;
+        const relatedSongs = primaryArtistId ? await prisma.song.findMany({
+            where: {
+                id: { not: songID },
+                isDeleted: false,
+                artists: {
+                    some: {
+                        id: primaryArtistId
+                    }
+                }
+            },
+            take: 15,
+            include: {
+                artists: true,
+                album: true
+            }
+        }) : [];
+
         return res.status(200).json({
             success: true,
             message: "Song details fetched successfully",
             song,
             isLiked,
-            likeCount
+            likeCount,
+            relatedSongs
         })
     } catch (error) {
         console.log(error);

@@ -5,23 +5,25 @@ import type { Song } from "../types/song.type";
 
 export const useSong = () => {
     const [song, setsong] = useState<Song | null>(null)
+    const [relatedSongs, setRelatedSongs] = useState<Song[]>([])
     const [likedSongs, setLikedSongs] = useState<Song[]>([])
     const [loading, setloading] = useState<boolean>(false)
     const [error, seterror] = useState<null | string>(null)
-    
+
     const getSongDetails = useCallback(async (id: string) => {
         try {
             seterror(null)
             setloading(true)
 
             const data = await songDetailsApi(id)
-            
+
             if (data.success) {
                 setsong({
                     ...data.song,
                     isLiked: data.isLiked,
                     likeCount: data.likeCount
                 })
+                setRelatedSongs(data.relatedSongs || [])
             } else {
                 seterror(data.message || "Failed to fetch song details")
             }
@@ -41,7 +43,7 @@ export const useSong = () => {
             seterror(null)
             setloading(true)
             const data = await handleGetLikedSongs()
-            
+
             // Backend might return { songs: [...] } or { likedSongs: [...] } or just an array.
             // Adjust based on common patterns. Usually it's data.songs or data.likedSongs.
             if (data && data.likedSongs) {
@@ -62,6 +64,6 @@ export const useSong = () => {
             setloading(false)
         }
     }, []);
-    
-    return { song, likedSongs, loading, error, getSongDetails, getLikedSongs }
+
+    return { song, relatedSongs, likedSongs, loading, error, getSongDetails, getLikedSongs }
 }

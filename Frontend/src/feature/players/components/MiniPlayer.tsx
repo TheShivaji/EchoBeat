@@ -16,6 +16,8 @@ export const MiniPlayer = () => {
         handleSeek,
         handleVolumeChange,
         toggleMute,
+        nextSong,
+        previousSong,
     } = usePlayer();
 
     if (!currentSong) {
@@ -96,9 +98,14 @@ export const MiniPlayer = () => {
                 
                 {/* Desktop Controls */}
                 <div className="hidden md:flex items-center gap-6 mb-2">
-                    <button className="text-[#b3b3b3] hover:text-white transition-colors" aria-label="Previous song">
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={previousSong}
+                        className="text-[#b3b3b3] hover:text-white transition-colors"
+                        aria-label="Previous song"
+                    >
                         <SkipBack size={20} fill="currentColor" />
-                    </button>
+                    </motion.button>
                     <motion.button 
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -112,9 +119,14 @@ export const MiniPlayer = () => {
                             <Play size={16} fill="black" className="ml-0.5" />
                         )}
                     </motion.button>
-                    <button className="text-[#b3b3b3] hover:text-white transition-colors" aria-label="Next song">
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={nextSong}
+                        className="text-[#b3b3b3] hover:text-white transition-colors"
+                        aria-label="Next song"
+                    >
                         <SkipForward size={20} fill="currentColor" />
-                    </button>
+                    </motion.button>
                 </div>
                 
                 {/* Shared Progress Bar (Absolute top on Mobile, Flex on Desktop) */}

@@ -16,6 +16,8 @@ export const usePlayer = () => {
         handleSeek,
         handleVolumeChange,
         toggleMute,
+        nextSong,
+        previousSong,
     } = usePlayerContext();
 
     return {
@@ -30,5 +32,7 @@ export const usePlayer = () => {
         handleSeek,
         handleVolumeChange,
         toggleMute,
+        nextSong,
+        previousSong,
     };
 };
