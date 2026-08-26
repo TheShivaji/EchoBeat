@@ -136,12 +136,13 @@ const SearchPage: React.FC<SearchPageProps> = ({
     };
 
     return (
-        <div className="min-h-screen bg-[#0c0c0c] px-4 md:px-10 lg:px-12 py-8 md:py-10 pb-28 md:pb-10 flex flex-col">
+        <div className="min-h-screen bg-[#0a0a0a] px-4 md:px-10 lg:px-12 py-8 md:py-10 pb-36 flex flex-col overflow-x-hidden">
+            <div className="max-w-[1600px] mx-auto w-full relative flex-grow flex flex-col">
 
             {/* Header / Input Area */}
-            <header className="mb-6 w-full flex flex-col gap-6">
+            <header className="mb-8 w-full flex flex-col gap-6">
                 <h1
-                    className="text-[28px] md:text-[40px] font-normal text-[#ededed] leading-tight tracking-[-0.02em]"
+                    className="text-[36px] md:text-[46px] lg:text-[56px] font-normal text-white leading-tight tracking-[-0.02em]"
                     style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
                 >
                     Search
@@ -187,6 +188,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
                     />
                 )}
             </main>
+            </div>
         </div>
     );
 };

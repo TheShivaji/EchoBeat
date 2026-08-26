@@ -19,11 +19,11 @@ export const SearchTabs: React.FC<SearchTabsProps> = ({ activeTab, onTabChange }
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
                             className={`
-                                px-4 py-1.5 md:px-5 md:py-2 rounded-full text-sm font-medium
-                                transition-all duration-200 select-none whitespace-nowrap
+                                px-5 py-2 md:px-6 md:py-2.5 rounded-full text-[14px] md:text-[15px] font-medium
+                                transition-all duration-300 ease-out select-none whitespace-nowrap
                                 ${isActive 
-                                    ? "bg-white text-black hover:bg-[#e0e0e0]" 
-                                    : "bg-[#282828] text-[#ededed] hover:bg-[#333333] hover:text-white"
+                                    ? "bg-white text-black shadow-sm" 
+                                    : "bg-[#181818] text-[#888] hover:bg-[#222] hover:text-[#ededed]"
                                 }
                             `}
                         >

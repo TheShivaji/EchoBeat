@@ -34,13 +34,13 @@ export const SearchInput: React.FC<SearchInputProps> = ({
                     placeholder={placeholder}
                     autoFocus={autoFocus}
                     className="
-                        w-full h-12 pl-11 pr-10
-                        bg-[#242424] text-[#ededed] text-sm md:text-base font-medium
-                        rounded-full border border-transparent
+                        w-full h-14 pl-12 pr-12
+                        bg-[#121212] text-white text-[15px] font-medium
+                        rounded-full border border-[#222] shadow-sm
                         placeholder:text-[#888888] placeholder:font-normal
-                        hover:bg-[#2a2a2a] hover:border-[#333333]
-                        focus:bg-[#2a2a2a] focus:border-[#555555] focus:outline-none focus:ring-1 focus:ring-[#555555]
-                        transition-all duration-200
+                        hover:bg-[#161616] hover:border-[#333]
+                        focus:bg-[#1a1a1a] focus:border-[#444] focus:outline-none focus:ring-4 focus:ring-white/5
+                        transition-all duration-300 ease-out
                     "
                 />
                 

@@ -30,11 +30,13 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     const renderSongs = () => {
         if (songs.length === 0) return null;
         return (
-            <GridContainer>
-                {songs.map(song => (
-                    <SongCard key={song.id} song={song} />
-                ))}
-            </GridContainer>
+            <div className="mb-10 w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3">
+                    {songs.map(song => (
+                        <SongCard key={song.id} song={song} variant="history" />
+                    ))}
+                </div>
+            </div>
         );
     };
 
