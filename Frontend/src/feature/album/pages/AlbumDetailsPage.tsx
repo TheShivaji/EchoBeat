@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Disc, Disc3, Loader2 } from "lucide-react";
+import { Disc, Disc3 } from "lucide-react";
 import { useAlbum } from "../hook/useAlbum";
 import { SongListItem } from "../../song/components/SongListItem";
+import { Loader } from "../../../components/shared/Loader";
 
 const AlbumDetailsPage = () => {
     const { id } = useParams<{ id: string }>();

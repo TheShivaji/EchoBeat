@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useNewReleases } from "../hook/useNewReleases";
 import SongCard from "../../home/components/SongCard";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
 import HomeError from "../../home/components/HomeError";
+import { Loader } from "../../../components/shared/Loader";
 
 const NewReleasesPage = () => {
     const { songs, loading, error, hasMore, loadMore, getNewReleases } = useNewReleases();
@@ -45,7 +45,7 @@ const NewReleasesPage = () => {
 
             {loading && songs.length === 0 && (
                 <div className="flex justify-center items-center py-20">
-                    <Loader2 className="animate-spin text-[#888] w-8 h-8" />
+                    <Loader size="lg" />
                 </div>
             )}
 
@@ -64,7 +64,7 @@ const NewReleasesPage = () => {
                     >
                         {loading ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader size="sm" variant="dark" />
                                 Loading...
                             </>
                         ) : (

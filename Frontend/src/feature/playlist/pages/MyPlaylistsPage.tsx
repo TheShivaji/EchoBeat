@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { usePlaylist } from "../hook/usePlaylist";
 import { PlaylistCard } from "../components/PlaylistCard";
-import { Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Loader } from "../../../components/shared/Loader";
+import { Link } from "react-router-dom";
 
 const MyPlaylistsPage = () => {
     const { userPlaylists, loading, error, getUserPlaylists } = usePlaylist();
@@ -12,18 +14,27 @@ const MyPlaylistsPage = () => {
 
     return (
         <div className="min-h-screen bg-[#0c0c0c] px-6 md:px-10 lg:px-12 py-10 md:py-16">
-            <header className="mb-10">
-                <h1 className="text-3xl md:text-4xl font-bold text-[#ededed] tracking-tight mb-2">
-                    My Playlists
-                </h1>
-                <p className="text-[#888888] text-sm">
-                    Your personal collection of playlists
-                </p>
+            <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-[#ededed] tracking-tight mb-2">
+                        My Playlists
+                    </h1>
+                    <p className="text-[#888888] text-sm">
+                        Your personal collection of playlists
+                    </p>
+                </div>
+                <Link 
+                    to="/create-playlist"
+                    className="inline-flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full font-medium text-sm hover:bg-gray-200 transition-colors w-fit"
+                >
+                    <Plus size={18} />
+                    New Playlist
+                </Link>
             </header>
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-[#666666] animate-spin" />
+                    <Loader size="lg" text="Loading playlists..." />
                 </div>
             ) : error ? (
                 <div className="flex flex-col items-center justify-center py-20">

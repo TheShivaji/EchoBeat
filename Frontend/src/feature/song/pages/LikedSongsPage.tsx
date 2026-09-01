@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useSong } from "../hook/useSong";
 import { SongListItem } from "../components/SongListItem";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
+import { Loader } from "../../../components/shared/Loader";
 
 const LikedSongsPage = () => {
     const { likedSongs, loading, error, getLikedSongs } = useSong();
@@ -31,7 +32,7 @@ const LikedSongsPage = () => {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-[#666666] animate-spin" />
+                    <Loader size="lg" />
                 </div>
             ) : error ? (
                 <div className="flex flex-col items-center justify-center py-20">

@@ -3,7 +3,7 @@ import appRouter from "./app.routes.tsx"
 import { Toaster } from "react-hot-toast"
 import { useEffect, useState } from "react"
 import { useAuth } from "../feature/auth/hook/authUse.tsx"
-import { Loader2 } from "lucide-react"
+import { Loader } from "../components/shared/Loader";
 
 const App = () => {
     const {handleGetCurrentUser} = useAuth()
@@ -18,7 +18,7 @@ const App = () => {
     if (isChecking) {
         return (
             <div className="min-h-screen bg-[#0c0c0c] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#666666] animate-spin" />
+                <Loader size="lg" text="Loading EchoBeats..." />
             </div>
         );
     }

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Loader2, Upload, ImageIcon } from "lucide-react";
+import { Upload, ImageIcon } from "lucide-react";
 import { useAlbum } from "../hook/useAlbum";
 import { useArtists } from "../../artists/hook/useArtists";
 import { FormField } from "../../../components/shared/FormField";
 import { ArtistSelector } from "../../upload/components/ArtistSelector";
+import { Loader } from "../../../components/shared/Loader";
 
 const CreateAlbumPage = () => {
     const navigate = useNavigate();
@@ -147,7 +148,7 @@ const CreateAlbumPage = () => {
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader size="lg" />
                                     Creating Album...
                                 </>
                             ) : (

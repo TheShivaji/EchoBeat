@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAlbum } from "../hook/useAlbum";
 import { AlbumCard } from "../../home/components/AlbumCard";
-import { Loader2 } from "lucide-react";
+import { Loader } from "../../../components/shared/Loader";
 
 const AllAlbumsPage = () => {
     const { allAlbums, loading, error, getAllAlbums } = useAlbum();
@@ -23,7 +23,7 @@ const AllAlbumsPage = () => {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-[#666666] animate-spin" />
+                    <Loader size="lg" />
                 </div>
             ) : error ? (
                 <div className="flex flex-col items-center justify-center py-20">

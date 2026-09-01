@@ -3,9 +3,10 @@ import { FormField } from "../../../components/shared/FormField";
 import { AudioUploader } from "./AudioUploader";
 import { CoverUploader } from "./CoverUploader";
 import type { UploadSongData } from "../types/upload.type";
-import { Loader2 } from "lucide-react";
+
 import { ArtistSelector } from "./ArtistSelector";
 import { useArtists } from "../../artists/hook/useArtists";
+import { Loader } from "../../../components/shared/Loader";
 
 interface UploadSongFormProps {
     formData: Partial<UploadSongData>;
@@ -149,7 +150,7 @@ export const UploadSongForm: React.FC<UploadSongFormProps> = ({
                     >
                         {loading ? (
                             <div className="flex items-center justify-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin text-[#888888]" />
+                                <Loader size="sm" variant="dark" />
                                 <span className="text-[#aaaaaa]">Uploading song... {uploadProgress}%</span>
                             </div>
                         ) : (

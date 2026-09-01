@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Loader2, Upload, ImageIcon } from "lucide-react";
+import { Upload, ImageIcon } from "lucide-react";
 import { usePlaylist } from "../hook/usePlaylist";
 import { FormField } from "../../../components/shared/FormField";
+import { Loader } from "../../../components/shared/Loader";
 
 const CreatePlaylistPage = () => {
     const navigate = useNavigate();
@@ -159,7 +160,7 @@ const CreatePlaylistPage = () => {
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader size="lg" />
                                     Creating Playlist...
                                 </>
                             ) : (

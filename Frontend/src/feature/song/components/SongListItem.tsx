@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Play } from "lucide-react";
-import type { Song } from "../types/song.type"
+import { Play, Plus } from "lucide-react";
+import type { Song } from "../types/song.type";
+import AddToPlaylistModal from "../../playlist/components/AddToPlaylistModal";
 
 interface SongListItemProps {
     song: Song;
@@ -15,6 +17,8 @@ const formatDuration = (seconds: number) => {
 };
 
 export const SongListItem = ({ song, index, rightContent }: SongListItemProps) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     return (
         <Link 
             to={`/song/${song.id}`}
@@ -53,8 +57,28 @@ export const SongListItem = ({ song, index, rightContent }: SongListItemProps) =
                 <div className="text-[#888888] text-sm tabular-nums">
                     {formatDuration(song.duration)}
                 </div>
+                
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsModalOpen(true);
+                    }}
+                    className="flex-shrink-0 p-2 text-[#666666] hover:text-white hover:bg-[#222222] rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100"
+                    aria-label="Add to Playlist"
+                    title="Add to Playlist"
+                >
+                    <Plus size={16} strokeWidth={2} />
+                </button>
+
                 {rightContent}
             </div>
+
+            <AddToPlaylistModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                songId={song.id} 
+            />
         </Link>
     );
 };

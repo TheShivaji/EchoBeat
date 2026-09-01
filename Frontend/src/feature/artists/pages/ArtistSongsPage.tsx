@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useArtists } from "../hook/useArtists";
 import { SongListItem } from "../../song/components/SongListItem";
+import { Loader } from "../../../components/shared/Loader";
 
 const ArtistSongsPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -68,7 +69,7 @@ const ArtistSongsPage = () => {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-[#666666] animate-spin" />
+                    <Loader size="lg" />
                 </div>
             ) : artistSongs.length === 0 ? (
                 <div className="flex justify-center py-20">

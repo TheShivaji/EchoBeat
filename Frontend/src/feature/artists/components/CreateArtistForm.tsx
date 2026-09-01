@@ -1,7 +1,8 @@
 import React from "react";
 import { FormField } from "../../../components/shared/FormField";
 import { ArtistImageUploader } from "./ArtistImageUploader";
-import { Loader2 } from "lucide-react";
+import { Loader } from "../../../components/shared/Loader";
+
 
 interface CreateArtistFormProps {
     formData: {
@@ -115,7 +116,7 @@ export const CreateArtistForm: React.FC<CreateArtistFormProps> = ({
                     >
                         {loading ? (
                             <div className="flex items-center justify-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin text-[#888888]" />
+                                <Loader size="sm" variant="dark" />
                                 <span className="text-[#aaaaaa]">Creating artist...</span>
                             </div>
                         ) : (

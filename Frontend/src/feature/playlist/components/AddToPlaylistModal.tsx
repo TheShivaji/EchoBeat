@@ -35,7 +35,13 @@ const AddToPlaylistModal = ({ isOpen, onClose, songId }: AddToPlaylistModalProps
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }}
+        >
             <div className="bg-[#121212] border border-[#222222] rounded-xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[#222222]">

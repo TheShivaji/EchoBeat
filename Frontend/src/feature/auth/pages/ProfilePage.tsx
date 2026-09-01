@@ -5,7 +5,8 @@ import { setUser } from "../../auth/state/authSlice";
 import { updateProfileApi, changePasswordApi } from "../api/profile.api";
 import { FormField } from "../../../components/shared/FormField";
 import { toast } from "react-hot-toast";
-import { Loader2, User as UserIcon, Lock, Upload } from "lucide-react";
+import { User as UserIcon, Lock, Upload } from "lucide-react";
+import { Loader } from "../../../components/shared/Loader";
 import axios from "axios";
 
 const ProfilePage = () => {
@@ -189,7 +190,7 @@ const ProfilePage = () => {
                                 >
                                     {isUpdatingProfile ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <Loader size="sm" variant="neutral" />
                                             Saving...
                                         </>
                                     ) : (
@@ -258,7 +259,7 @@ const ProfilePage = () => {
                             >
                                 {isChangingPassword ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <Loader size="sm" variant="neutral" />
                                         Updating...
                                     </>
                                 ) : (

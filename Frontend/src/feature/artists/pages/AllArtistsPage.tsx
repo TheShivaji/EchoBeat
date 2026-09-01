@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useArtists } from "../hook/useArtists";
 import ArtistCard from "../../home/components/ArtistCard";
-import { Loader2 } from "lucide-react";
 import type { Artist as HomeArtist } from "../../home/types/home.types";
+import { Loader } from "../../../components/shared/Loader";
 
 const AllArtistsPage = () => {
     const { artists, loading, error, handleGetAllArtist } = useArtists();
@@ -24,7 +24,7 @@ const AllArtistsPage = () => {
 
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-[#666666] animate-spin" />
+                    <Loader size="lg" />
                 </div>
             ) : error ? (
                 <div className="flex flex-col items-center justify-center py-20">
