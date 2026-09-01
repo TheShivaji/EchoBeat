@@ -204,15 +204,15 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                     {/* User profile */}
                     {user ? (
                         <>
-                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-md">
+                            <NavLink to="/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-[#181818] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#444444]">
                                 {/* Avatar */}
                                 <div
                                     className="w-7 h-7 rounded-full bg-[#222222] border border-[#2e2e2e] flex items-center justify-center shrink-0"
                                     aria-hidden="true"
                                 >
-                                    {user.avatar ? (
+                                    {user.avatarUrl ? (
                                         <img
-                                            src={user.avatar}
+                                            src={user.avatarUrl}
                                             alt={displayName}
                                             className="w-full h-full rounded-full object-cover"
                                         />
@@ -231,7 +231,7 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                                         {user.email}
                                     </p>
                                 </div>
-                            </div>
+                            </NavLink>
 
                             {/* Logout */}
                             <button

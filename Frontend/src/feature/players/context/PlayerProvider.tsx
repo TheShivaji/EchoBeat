@@ -43,6 +43,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const volumeRef = useRef(1);
     const progressBarRef = useRef<HTMLDivElement | null>(null);
+    const lastRecordedSongIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -62,9 +63,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             audio.currentTime = 0;
             setCurrentTime(0);
             audio.load();
-            
-            // Record play history
-            recordPlayHistory(currentSong.id);
         }
 
         audio.volume = volume;
@@ -85,7 +83,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }, [volume]);
 
     // Audio Event Handlers
-    const handlePlayEvent = () => dispatch(setIsPlaying(true));
+    const handlePlayEvent = () => {
+        dispatch(setIsPlaying(true));
+        // Record play history safely on first play of the song
+        if (currentSong && lastRecordedSongIdRef.current !== currentSong.id) {
+            lastRecordedSongIdRef.current = currentSong.id;
+            recordPlayHistory(currentSong.id);
+        }
+    };
     const handlePauseEvent = () => dispatch(setIsPlaying(false));
 
     const handleTimeUpdate = () => {

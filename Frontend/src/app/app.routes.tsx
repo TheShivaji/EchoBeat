@@ -22,8 +22,8 @@ import PlaylistDetailsPage from "../feature/playlist/pages/PlaylistDetailsPage";
 import LikedSongsPage from "../feature/song/pages/LikedSongsPage";
 import AlbumDetailsPage from "../feature/album/pages/AlbumDetailsPage";
 import SearchPage from "../feature/search/pages/SearchPage";
-
 import PlayerPage from "../feature/players/pages/PlayerPage";
+import ProfilePage from "../feature/auth/pages/ProfilePage";
 
 const appRouter = createBrowserRouter([
     {
@@ -105,6 +105,10 @@ const appRouter = createBrowserRouter([
                     {
                         path: "/player",
                         element: <PlayerPage />
+                    },
+                    {
+                        path: "/profile",
+                        element: <ProfilePage />
                     },
                     {
                         element: <Protected requiredRole="ADMIN" />,

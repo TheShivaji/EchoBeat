@@ -109,6 +109,7 @@ const CreatePlaylistPage = () => {
                     <div className="grid grid-cols-1 gap-6">
                         <FormField
                             id="name"
+                            name="name"
                             label="Playlist Name"
                             value={formData.name}
                             onChange={handleInputChange}

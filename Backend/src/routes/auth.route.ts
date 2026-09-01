@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { singup , login , getMe, logout } from "../controllers/auth.controller.js";
+import { singup , login , getMe, logout, updateProfile, changePassword } from "../controllers/auth.controller.js";
 import { authUser } from "../middleware/auth.middleware.js";
 import passport from "passport";
+import { upload } from "../utils/multer.js";
 
 const authRouter = Router()
 //signup and login
@@ -11,6 +12,9 @@ authRouter.post("/logout" , logout)
 
 //get current user
 authRouter.get("/me" , authUser , getMe)
+
+authRouter.put("/update-profile", authUser, upload.single("avatar"), updateProfile);
+authRouter.post("/change-password", authUser, changePassword);
 
 // ---------------------------------
 // Google OAuth Routes

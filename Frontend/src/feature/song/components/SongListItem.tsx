@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Play } from "lucide-react";
-import type { Song } from "../../../types/song.type";
+import type { Song } from "../types/song.type"
 
 interface SongListItemProps {
     song: Song;
