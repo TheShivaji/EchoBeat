@@ -48,9 +48,15 @@ const playerSlice = createSlice({
                 state.isPlaying = !state.isPlaying;
             }
         },
+        clearPlayer: (state) => {
+            state.currentSong = null;
+            state.isPlaying = false;
+            state.queue = [];
+            state.currentIndex = 0;
+        }
     },
 });
 
-export const { setCurrentSong, setIsPlaying, setVolume, togglePlay } = playerSlice.actions;
+export const { setCurrentSong, setIsPlaying, setVolume, togglePlay, clearPlayer } = playerSlice.actions;
 
 export default playerSlice.reducer;

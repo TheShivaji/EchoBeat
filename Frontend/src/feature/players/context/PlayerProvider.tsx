@@ -46,7 +46,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio || !currentSong) return;
+        if (!audio) return;
+
+        if (!currentSong) {
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
+            setCurrentTime(0);
+            return;
+        }
 
         if (audio.src !== currentSong.audioUrl) {
             audio.pause();

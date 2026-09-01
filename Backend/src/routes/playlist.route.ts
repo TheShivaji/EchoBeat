@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authUser } from "../middleware/auth.middleware.js";
-import { createPlaylist, updatePlaylist, getUserPlaylists, getPlaylistDetails, deletePlaylist } from "../controllers/playlist.controller.js";
+import { createPlaylist, updatePlaylist, getUserPlaylists, getPlaylistDetails, deletePlaylist, songAddToPlaylist } from "../controllers/playlist.controller.js";
 import { upload } from "../utils/multer.js";
 
 const playlistRouter = Router();
@@ -19,5 +19,8 @@ playlistRouter.get("/:id", authUser, getPlaylistDetails);
 
 // Delete playlist
 playlistRouter.delete("/delete/:id", authUser, deletePlaylist);
+
+// Add or remove song from playlist
+playlistRouter.post("/:playlistId/song", authUser, songAddToPlaylist);
 
 export default playlistRouter;

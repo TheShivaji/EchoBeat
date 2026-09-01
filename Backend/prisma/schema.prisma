@@ -20,10 +20,11 @@ model User {
   id         String      @id @default(uuid())
   username   String?
   email      String      @unique
-  password   String
+  password   String?
+  googleId   String?     @unique
   role       UserRole    @default(USER)
   createdAt  DateTime    @default(now())
-  updatedAt     DateTime      @updatedAt
+  updatedAt  DateTime    @updatedAt
   likedSongs    LikedSong[]
   playHistories PlayHistory[]
 }

@@ -1,7 +1,9 @@
-import { Play, Music } from "lucide-react";
+import { Play, Music, Plus } from "lucide-react";
 import type { Song } from "../types/home.types";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import AddToPlaylistModal from "../../playlist/components/AddToPlaylistModal";
 
 interface SongCardProps {
     song: Song;
@@ -20,6 +22,7 @@ const SongCard = ({
 }: SongCardProps) => {
     const navigate = useNavigate();
     const primaryArtist = song.artists[0]?.name ?? "Unknown Artist";
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Dynamic styling based on variant
     const getVariantClasses = () => {
@@ -99,6 +102,24 @@ const SongCard = ({
                     {song.playCount.toLocaleString()} plays
                 </span>
             )}
+
+            {/* Add to Playlist Button */}
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsModalOpen(true);
+                }}
+                className="flex-shrink-0 p-2 text-[#666666] hover:text-white hover:bg-[#222222] rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100"
+                aria-label="Add to Playlist"
+            >
+                <Plus size={16} strokeWidth={2} />
+            </button>
+
+            <AddToPlaylistModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                songId={song.id} 
+            />
         </motion.div>
     );
 };

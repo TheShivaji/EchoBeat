@@ -1,5 +1,5 @@
 import { usePlayer } from "../hook/usePlayer"
-import { Play, Pause, SkipBack, SkipForward, VolumeX, Volume1, Volume2, Music } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, VolumeX, Volume1, Volume2, Music, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +18,7 @@ export const MiniPlayer = () => {
         toggleMute,
         nextSong,
         previousSong,
+        clearPlayer,
     } = usePlayer();
 
     if (!currentSong) {
@@ -157,29 +158,51 @@ export const MiniPlayer = () => {
                 </div>
             </div>
 
-            {/* RIGHT: Volume Controls (Desktop Only) */}
-            <div className="hidden md:flex items-center justify-end gap-2 w-[30%] min-w-[180px]">
-                <button 
-                    onClick={toggleMute} 
-                    className="text-[#b3b3b3] hover:text-white transition-colors" 
-                    aria-label={volume === 0 ? "Unmute" : "Mute"}
-                >
-                    <VolumeIcon size={20} />
-                </button>
-                <div className="w-24 group flex items-center">
-                    <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={volume * 100}
-                        onChange={handleVolumeChange}
-                        className="w-full h-1 bg-[#4d4d4d] rounded-lg appearance-none cursor-pointer accent-white hover:accent-[#1db954] transition-colors"
-                        aria-label="Volume"
-                        style={{
-                            background: `linear-gradient(to right, white ${volume * 100}%, #4d4d4d ${volume * 100}%)`
-                        }}
-                    />
+            {/* RIGHT: Volume Controls & Close */}
+            <div className="flex items-center justify-end gap-2 w-auto md:w-[30%] md:min-w-[180px] ml-auto z-10">
+                {/* Desktop Volume */}
+                <div className="hidden md:flex items-center gap-2">
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMute();
+                        }} 
+                        className="text-[#b3b3b3] hover:text-white transition-colors p-1" 
+                        aria-label={volume === 0 ? "Unmute" : "Mute"}
+                    >
+                        <VolumeIcon size={20} />
+                    </button>
+                    <div className="w-24 group flex items-center mr-2">
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={volume * 100}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                                e.stopPropagation();
+                                handleVolumeChange(e);
+                            }}
+                            className="w-full h-1 bg-[#4d4d4d] rounded-lg appearance-none cursor-pointer accent-white hover:accent-[#1db954] transition-colors"
+                            aria-label="Volume"
+                            style={{
+                                background: `linear-gradient(to right, white ${volume * 100}%, #4d4d4d ${volume * 100}%)`
+                            }}
+                        />
+                    </div>
                 </div>
+
+                {/* Close Button (Visible on both Mobile and Desktop) */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        clearPlayer();
+                    }}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-[#888888] hover:text-white hover:bg-[#2a2a2a] transition-all duration-200"
+                    aria-label="Close mini player"
+                >
+                    <X size={18} />
+                </button>
             </div>
             
         </div>

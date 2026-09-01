@@ -179,29 +179,42 @@ export const songAddToPlaylist = async (req: AuthRequest, res: Response) => {
         if (!playlistId || !songId || !action) {
             return res.status(400).json({ message: "Playlist ID and Song ID are required" })
         }
-        if (action !== "add" || action !== "remove") {
+        if (action !== "add" && action !== "remove") {
             return res.status(400).json({ message: "Invalid action" })
         }
 
         const existingPlaylist = await prisma.playlist.findUnique({
-            where: {
-                id: String(playlistId)
-            }
-        })
+            where: { id: String(playlistId) },
+            include: { songs: { select: { id: true } } }
+        });
+        
         if (!existingPlaylist) {
             return res.status(404).json({ message: "Playlist not found" })
         }
+        
         if (existingPlaylist.userId !== req.user.id) {
             return res.status(403).json({ message: "Unauthorized: You do not own this playlist" })
         }
+        
         const existinSong = await prisma.song.findUnique({
-            where: {
-                id: String(songId)
-            }
-        })
+            where: { id: String(songId) }
+        });
+        
         if (!existinSong) {
             return res.status(404).json({ message: "Song not found" })
         }
+
+        // Check for duplicates before adding
+        const songExistsInPlaylist = existingPlaylist.songs.some(song => song.id === songId);
+        
+        if (action === "add" && songExistsInPlaylist) {
+            return res.status(400).json({ message: "Song is already in this playlist" });
+        }
+        
+        if (action === "remove" && !songExistsInPlaylist) {
+            return res.status(400).json({ message: "Song is not in this playlist" });
+        }
+
         const actionPlaylist = await prisma.playlist.update({
             where: {
                 id: String(playlistId)
@@ -209,15 +222,15 @@ export const songAddToPlaylist = async (req: AuthRequest, res: Response) => {
             data: {
                 songs: action == "add" ? {
                     connect: {
-                        id: songId
+                        id: String(songId)
                     }
                 } : {
                     disconnect: {
-                        id: songId
+                        id: String(songId)
                     }
                 }
             }
-        })
+        });
         return res.status(200).json({ message: `Song ${action == "add" ? "added" : "removed"} to playlist successfully`, playlist: actionPlaylist })
     } catch (error) {
         console.error("Error adding song to playlist:", error);

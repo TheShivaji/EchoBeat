@@ -12,8 +12,11 @@ import {
     Volume1,
     Heart,
     Music,
+    Plus,
 } from "lucide-react";
+import { useState } from "react";
 import { usePlayer } from "../hook/usePlayer";
+import AddToPlaylistModal from "../../playlist/components/AddToPlaylistModal";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../app/app.store";
 import type { Song } from "../../song/types/song.type";
@@ -199,6 +202,7 @@ const CurrentCard = ({
 
 const PlayerPage = () => {
     const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     /* ── Existing hook data (NO new state) ── */
     const {
@@ -418,17 +422,26 @@ const PlayerPage = () => {
                             {primaryArtist}
                         </p>
                     </div>
-                    <button className="flex-shrink-0 text-[#b3b3b3] hover:text-white transition-colors">
-                        <Heart
-                            size={24}
-                            className={
-                                currentSong.isLiked
-                                    ? "fill-[#1db954] text-[#1db954]"
-                                    : ""
-                            }
-                            strokeWidth={currentSong.isLiked ? 0 : 2}
-                        />
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setIsModalOpen(true)}
+                            className="flex-shrink-0 text-[#b3b3b3] hover:text-white transition-colors"
+                            aria-label="Add to Playlist"
+                        >
+                            <Plus size={24} strokeWidth={2} />
+                        </button>
+                        <button className="flex-shrink-0 text-[#b3b3b3] hover:text-white transition-colors">
+                            <Heart
+                                size={24}
+                                className={
+                                    currentSong.isLiked
+                                        ? "fill-[#1db954] text-[#1db954]"
+                                        : ""
+                                }
+                                strokeWidth={currentSong.isLiked ? 0 : 2}
+                            />
+                        </button>
+                    </div>
                 </div>
 
                 {/* ─────────── PROGRESS BAR ─────────── */}
@@ -545,6 +558,11 @@ const PlayerPage = () => {
                     </div>
                 </div>
             </div>
+            <AddToPlaylistModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                songId={currentSong.id} 
+            />
         </div>
     );
 };

@@ -30,3 +30,8 @@ export const handleGetPlaylistDetails = async (id: string) => {
     const response = await api.get(`/${id}`);
     return response.data;
 }
+
+export const handleSongActionInPlaylist = async (playlistId: string, songId: string, action: "add" | "remove") => {
+    const response = await api.post(`/${playlistId}/song`, { songId, action });
+    return response.data;
+}

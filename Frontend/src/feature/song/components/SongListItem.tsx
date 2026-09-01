@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { Play } from "lucide-react";
-import type { Song } from "../../types/song.type";
+import type { Song } from "../../../types/song.type";
 
 interface SongListItemProps {
     song: Song;
     index?: number;
+    rightContent?: React.ReactNode;
 }
 
 const formatDuration = (seconds: number) => {
@@ -13,7 +14,7 @@ const formatDuration = (seconds: number) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
-export const SongListItem = ({ song, index }: SongListItemProps) => {
+export const SongListItem = ({ song, index, rightContent }: SongListItemProps) => {
     return (
         <Link 
             to={`/song/${song.id}`}
@@ -48,8 +49,11 @@ export const SongListItem = ({ song, index }: SongListItemProps) => {
                 </span>
             </div>
 
-            <div className="text-[#888888] text-sm tabular-nums mr-2">
-                {formatDuration(song.duration)}
+            <div className="flex items-center gap-4 ml-auto">
+                <div className="text-[#888888] text-sm tabular-nums">
+                    {formatDuration(song.duration)}
+                </div>
+                {rightContent}
             </div>
         </Link>
     );

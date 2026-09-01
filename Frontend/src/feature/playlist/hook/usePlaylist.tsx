@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { handleGetUserPlaylists, handleCreatePlaylist, handleGetPlaylistDetails } from "../api/playlist.api";
+import { handleGetUserPlaylists, handleCreatePlaylist, handleGetPlaylistDetails, handleSongActionInPlaylist } from "../api/playlist.api";
 import type { Playlist } from "../types/playlist.types";
 
 export const usePlaylist = () => {
@@ -56,6 +56,20 @@ export const usePlaylist = () => {
         }
     }, []);
 
+    const songActionInPlaylist = useCallback(async (playlistId: string, songId: string, action: "add" | "remove") => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await handleSongActionInPlaylist(playlistId, songId, action);
+            return response;
+        } catch (err: any) {
+            setError(err?.response?.data?.message || `Failed to ${action} song`);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         userPlaylists,
         playlist,
@@ -63,6 +77,7 @@ export const usePlaylist = () => {
         error,
         getUserPlaylists,
         createPlaylist,
-        getPlaylistDetails
+        getPlaylistDetails,
+        songActionInPlaylist
     };
 };

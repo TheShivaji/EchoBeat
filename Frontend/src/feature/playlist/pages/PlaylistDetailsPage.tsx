@@ -1,19 +1,39 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ListMusic, Globe, Lock } from "lucide-react";
+import { ListMusic, Globe, Lock, Trash2 } from "lucide-react";
 import { usePlaylist } from "../hook/usePlaylist";
 import { SongListItem } from "../../song/components/SongListItem";
 import type { Song } from "../../song/types/song.type";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../app/app.store";
+import toast from "react-hot-toast";
 
 const PlaylistDetailsPage = () => {
     const { id } = useParams<{ id: string }>();
-    const { playlist, loading, error, getPlaylistDetails } = usePlaylist();
+    const { playlist, loading, error, getPlaylistDetails, songActionInPlaylist } = usePlaylist();
+    const currentUser = useSelector((state: RootState) => state.auth.user);
 
     useEffect(() => {
         if (id) {
             getPlaylistDetails(id);
         }
-    }, [id]);
+    }, [id, getPlaylistDetails]);
+
+    const handleRemoveSong = async (songId: string, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!id) return;
+        
+        try {
+            await songActionInPlaylist(id, songId, "remove");
+            toast.success("Song removed from playlist");
+            // Refresh playlist details to reflect changes
+            getPlaylistDetails(id);
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || "Failed to remove song");
+        }
+    };
 
     if (loading && !playlist) {
         return (
@@ -104,9 +124,29 @@ const PlaylistDetailsPage = () => {
             {normalizedSongs.length > 0 ? (
                 <div>
                     <div className="flex flex-col gap-1">
-                        {normalizedSongs.map((song, idx) => (
-                            <SongListItem key={song.id} song={song} index={idx} />
-                        ))}
+                        {normalizedSongs.map((song, idx) => {
+                            const isOwner = currentUser?.id === playlist.userId;
+                            
+                            return (
+                                <SongListItem 
+                                    key={song.id} 
+                                    song={song} 
+                                    index={idx} 
+                                    rightContent={
+                                        isOwner && (
+                                            <button
+                                                onClick={(e) => handleRemoveSong(song.id, e)}
+                                                className="p-2 text-[#666666] hover:text-[#ff4444] hover:bg-[#222222] rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100"
+                                                aria-label="Remove from Playlist"
+                                                title="Remove from Playlist"
+                                            >
+                                                <Trash2 size={16} strokeWidth={2} />
+                                            </button>
+                                        )
+                                    }
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             ) : (

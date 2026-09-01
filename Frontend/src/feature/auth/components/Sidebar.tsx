@@ -202,52 +202,69 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                 <div className="border-t border-[#1a1a1a] px-3 pt-4 pb-5 space-y-0.5">
 
                     {/* User profile */}
-                    {user && (
-                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-md">
-                            {/* Avatar */}
-                            <div
-                                className="w-7 h-7 rounded-full bg-[#222222] border border-[#2e2e2e] flex items-center justify-center shrink-0"
-                                aria-hidden="true"
+                    {user ? (
+                        <>
+                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-md">
+                                {/* Avatar */}
+                                <div
+                                    className="w-7 h-7 rounded-full bg-[#222222] border border-[#2e2e2e] flex items-center justify-center shrink-0"
+                                    aria-hidden="true"
+                                >
+                                    {user.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt={displayName}
+                                            className="w-full h-full rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <span className="text-[10px] font-semibold text-[#888888]">
+                                            {getInitials(displayName)}
+                                        </span>
+                                    )}
+                                </div>
+                                {/* Name + email */}
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-[13px] font-medium text-[#c0c0c0] truncate leading-none mb-1">
+                                        {displayName}
+                                    </p>
+                                    <p className="text-[11.5px] font-normal text-[#777777] truncate leading-none">
+                                        {user.email}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Logout */}
+                            <button
+                                type="button"
+                                onClick={onLogout}
+                                className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-normal text-[#777777] hover:bg-[#181818] hover:text-[#d0d0d0] transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#444444]"
+                                aria-label="Log out"
                             >
-                                {user.avatar ? (
-                                    <img
-                                        src={user.avatar}
-                                        alt={displayName}
-                                        className="w-full h-full rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-[10px] font-semibold text-[#888888]">
-                                        {getInitials(displayName)}
-                                    </span>
-                                )}
-                            </div>
-                            {/* Name + email */}
-                            <div className="min-w-0 flex-1">
-                                <p className="text-[13px] font-medium text-[#c0c0c0] truncate leading-none mb-1">
-                                    {displayName}
-                                </p>
-                                <p className="text-[11.5px] font-normal text-[#777777] truncate leading-none">
-                                    {user.email}
-                                </p>
-                            </div>
+                                <LogOut
+                                    size={15}
+                                    strokeWidth={1.75}
+                                    className="text-[#666666] group-hover:text-[#c0c0c0] transition-colors duration-150 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                Log out
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex flex-col gap-2 px-3 py-2">
+                            <NavLink
+                                to="/login"
+                                className="w-full flex items-center justify-center py-2.5 rounded-md text-[13px] font-medium text-[#ffffff] bg-[#ffffff] bg-opacity-10 hover:bg-opacity-20 transition-all duration-150"
+                            >
+                                Log in
+                            </NavLink>
+                            <NavLink
+                                to="/register"
+                                className="w-full flex items-center justify-center py-2.5 rounded-md text-[13px] font-medium text-[#111111] bg-[#ffffff] hover:bg-[#e0e0e0] transition-all duration-150"
+                            >
+                                Sign up
+                            </NavLink>
                         </div>
                     )}
-
-                    {/* Logout */}
-                    <button
-                        type="button"
-                        onClick={onLogout}
-                        className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-normal text-[#777777] hover:bg-[#181818] hover:text-[#d0d0d0] transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#444444]"
-                        aria-label="Log out"
-                    >
-                        <LogOut
-                            size={15}
-                            strokeWidth={1.75}
-                            className="text-[#666666] group-hover:text-[#c0c0c0] transition-colors duration-150 shrink-0"
-                            aria-hidden="true"
-                        />
-                        Log out
-                    </button>
                 </div>
             </aside>
 
