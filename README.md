@@ -92,12 +92,12 @@ Vite-powered React 19 frontend with instant HMR and a tiny production bundle.
 
 ```
 ┌─────────────────────────────┐        ┌──────────────────────────────┐
-│           FRONTEND           │        │            BACKEND             │
-│                               │        │                                │
-│   React 19 + Vite            │  REST  │   Express 5 (Node.js)         │
-│   Redux Toolkit (state)      │◄──────►│   Prisma ORM (type-safe)      │
-│   Tailwind CSS v4            │  JWT   │   PostgreSQL                  │
-│   React Router DOM v6        │        │   Multer → ImageKit (CDN)     │
+│           FRONTEND          │        │            BACKEND           │
+│                             │        │                              │
+│   React 19 + Vite           │  REST  │   Express 5 (Node.js)        │
+│   Redux Toolkit (state)     │◄──────►│   Prisma ORM (type-safe)     │
+│   Tailwind CSS v4           │  JWT   │   PostgreSQL                 │
+│   React Router DOM v6       │        │   Multer → ImageKit (CDN)    │
 └─────────────────────────────┘        └──────────────────────────────┘
 ```
 
