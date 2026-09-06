@@ -52,7 +52,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
         handleSearchAlbum,
         handleSearchSong,
         handleSearchPlaylist,
-
+        aiSource,
     } = useSearch();
 
     const timerRef = useRef(null)
@@ -185,6 +185,7 @@ const SearchPage: React.FC<SearchPageProps> = ({
                         artists={currentArtists}
                         albums={currentAlbums}
                         playlists={currentPlaylists}
+                        aiSource={aiSource}
                     />
                 )}
             </main>

@@ -24,6 +24,7 @@ export interface SearchResultsProps {
     artists: Artist[];
     albums: Album[];
     playlists: Playlist[];
+    aiSource?: string | null;
 }
 
 export interface SearchStatesProps {

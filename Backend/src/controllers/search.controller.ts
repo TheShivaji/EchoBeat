@@ -2,6 +2,8 @@ import { prisma } from "../config/db.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import type { Response } from "express";
 import { Prisma } from "@prisma/client";
+import { routeQuery } from "../service/query-router.service.js";
+import { getAIRecommendations } from "../service/ai.service.js";
 
 const validation = async function (res: Response, req: AuthRequest) {
     const { q, page = 1, limit = 20 } = req.query;
@@ -82,6 +84,33 @@ export const searchSong = async function (req: AuthRequest, res: Response) {
         const searchParams = await validation(res, req)
         if (!searchParams) return;
         const { searchQuery, skip, take, page, limit } = searchParams;
+        
+        // 1. Query Router
+        const decision = routeQuery(searchQuery);
+
+        if (decision === 'AI_RECOMMENDATION') {
+            try {
+                // 2. AI Service Flow
+                const aiResult = await getAIRecommendations(searchQuery);
+                return res.status(200).json({
+                    success: true,
+                    message: "songs found",
+                    source: aiResult.source, // unified response metadata
+                    songs: aiResult.songs,
+                    pagination: {
+                        total: aiResult.songs.length,
+                        page,
+                        limit,
+                        totalPages: Math.ceil(aiResult.songs.length / limit)
+                    }
+                });
+            } catch (error) {
+                console.error("AI Recommendation failed, falling back to normal search", error);
+                // Fallback to normal search if AI fails
+            }
+        }
+
+        // 3. Normal Search Flow (Prisma)
         const where: Prisma.SongWhereInput = {
             // Ensure no artist on the song is deleted
             artists: {
@@ -128,6 +157,7 @@ export const searchSong = async function (req: AuthRequest, res: Response) {
         return res.status(200).json({
             success: true,
             message: "songs found",
+            source: "search",
             songs: song,
             pagination: {
                 total: Number(totalSong),

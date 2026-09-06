@@ -1,0 +1,26 @@
+[tool.uv]
+package = false
+[project]
+name = "ai-service"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "TheShivaji", email = "shivajijagdale2005@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "fastapi>=0.141.1",
+    "langchain-core>=1.6.2",
+    "langchain-google-genai>=4.4.0",
+    "pydantic",
+    "uvicorn[standard]>=0.52.4",
+]
+
+[project.scripts]
+ai-service = "ai_service:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"

@@ -19,6 +19,7 @@ export const useSearch = () => {
     const [albums, setAlbums] = useState<Album[]>([]);
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
     const [songs, setSongs] = useState<Song[]>([]);
+    const [aiSource, setAiSource] = useState<string | null>(null);
     const controllerRef = useRef<AbortController | null>(null);
     const requestIdRef = useRef(0);
 
@@ -202,6 +203,7 @@ export const useSearch = () => {
             const cachedata = cachedFunction(q, 'songs');
             if (cachedata.isCached) {
                 setSongs(cachedata.data.songs);
+                setAiSource(cachedata.data.aiSource || null);
                 return;
             }
 
@@ -210,9 +212,11 @@ export const useSearch = () => {
             if (requestId !== requestIdRef.current) return;
             if (result.success) {
                 setSongs(result.songs);
+                const newAiSource = result.source && result.source !== "search" ? result.source : null;
+                setAiSource(newAiSource);
 
                 cacheRef.current[cachedata.key] = {
-                    data: result,
+                    data: { ...result, aiSource: newAiSource },
                     timeStamp: Date.now()
                 };
             }
@@ -280,6 +284,7 @@ export const useSearch = () => {
         albums,
         playlists,
         songs,
+        aiSource,
 
         loading,
         error,

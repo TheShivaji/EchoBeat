@@ -12,6 +12,9 @@ if(!process.env.JWT_SECRET){
 if(!process.env.IMAGEKIT_PUBLIC_KEY || !process.env.IMAGEKIT_PRIVATE_KEY || !process.env.IMAGEKIT_URL_ENDPOINT){
     throw new Error("Imagekit credentials are not defined")
 }
+if(!process.env.AI_SERVICE_URL){
+    throw new Error("AI service URL is not defined")
+}
 
 export default {
     port: process.env.PORT || 5000,
@@ -21,4 +24,5 @@ export default {
     imagekitPublicKey: process.env.IMAGEKIT_PUBLIC_KEY!,
     imagekitPrivateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
     imagekitUrlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
+    aiServiceUrl: process.env.AI_SERVICE_URL!,
 }

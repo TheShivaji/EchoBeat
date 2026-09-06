@@ -10,7 +10,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     songs,
     artists,
     albums,
-    playlists
+    playlists,
+    aiSource
 }) => {
     
     // Grid Layouts
@@ -31,6 +32,16 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
         if (songs.length === 0) return null;
         return (
             <div className="mb-10 w-full">
+                {aiSource && (
+                    <div className="mb-6 flex flex-col gap-1">
+                        <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+                            ✨ AI Recommendations
+                        </h2>
+                        <span className="text-sm text-[#888888]">
+                            Source: {aiSource}
+                        </span>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3">
                     {songs.map(song => (
                         <SongCard key={song.id} song={song} variant="history" />

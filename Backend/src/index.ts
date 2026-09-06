@@ -12,6 +12,7 @@ import artistRouter from "./routes/artist.route.js";
 import searchRouter from "./routes/search.routes.js";
 import historyRouter from "./routes/history.route.js";
 import homeRouter from "./routes/home.route.js";
+import aiRouter from "./routes/ai.route.js";
 
 
 dotenv.config();
@@ -52,5 +53,6 @@ app.use('/api/artists', artistRouter);
 app.use('/api/search', searchRouter)
 app.use('/api/history', historyRouter);
 app.use('/api/home', homeRouter);
+app.use("/api/ai", aiRouter);
 
 export default app;
