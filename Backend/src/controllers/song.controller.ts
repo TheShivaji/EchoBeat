@@ -275,7 +275,19 @@ export const addSongToAlbum = async (req: AuthRequest, res: Response) => {
 
 export const getAllSongs = async (req: AuthRequest, res: Response) => {
     try {
-        const songs = await prisma.song.findMany()
+        const songs = await prisma.song.findMany({
+            where: {
+                isDeleted: false
+            },
+            include: {
+                artists: {
+                    where: {
+                        isDeleted: false
+                    }
+                },
+                album: true
+            }
+        })
         return res.status(200).json(songs)
     } catch (error) {
         console.log(error);

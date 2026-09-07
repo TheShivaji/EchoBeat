@@ -4,6 +4,7 @@ import { PlaylistCard } from "../components/PlaylistCard";
 import { Plus } from "lucide-react";
 import { Loader } from "../../../components/shared/Loader";
 import { Link } from "react-router-dom";
+import { AIPlaylistGenerator } from "../../ai/components/AIPlaylistGenerator";
 
 const MyPlaylistsPage = () => {
     const { userPlaylists, loading, error, getUserPlaylists } = usePlaylist();
@@ -31,6 +32,9 @@ const MyPlaylistsPage = () => {
                     New Playlist
                 </Link>
             </header>
+
+            {/* ── AI Playlist Generator ─────────────────────────────── */}
+            <AIPlaylistGenerator />
 
             {loading ? (
                 <div className="flex justify-center py-20">

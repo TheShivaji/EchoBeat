@@ -120,7 +120,15 @@ export const getPlaylistDetails = async (req: AuthRequest, res: Response) => {
         const playlist = await prisma.playlist.findUnique({
             where: { id: String(id) },
             include: {
-                songs: true
+                songs: {
+                    where: { isDeleted: false },
+                    include: {
+                        artists: {
+                            where: { isDeleted: false }
+                        },
+                        album: true
+                    }
+                }
             }
         });
 

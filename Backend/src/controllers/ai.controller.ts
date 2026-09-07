@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import { understandMusicRequest } from "../service/ai.service.js";
+import { understandMusicRequest, createAIPlaylistForUser } from "../service/ai.service.js";
 import { prisma } from "../config/db.js";
+import type { AuthRequest } from "../middleware/auth.middleware.js";
 
 export const understandMusic = async (
     req: Request,
@@ -174,6 +175,37 @@ export const understandMusic = async (
 
         return res.status(500).json({
             message: "Failed to process music request",
+        });
+    }
+};
+
+export const createAIPlaylist = async (req: AuthRequest, res: Response) => {
+    try {
+        const { message } = req.body;
+
+        if (!message || !String(message).trim()) {
+            return res.status(400).json({ success: false, message: "Message is required" });
+        }
+
+        const { playlist, source } = await createAIPlaylistForUser(String(message).trim(), req.user.id);
+
+        return res.status(201).json({
+            success: true,
+            playlist,
+            source,
+        });
+    } catch (error: any) {
+        if (error?.message?.toLowerCase().includes("no matching songs")) {
+            return res.status(404).json({
+                success: false,
+                message: "No matching songs were found for this playlist.",
+            });
+        }
+
+        console.error("AI playlist creation error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Couldn't create the playlist. Please try again.",
         });
     }
 };

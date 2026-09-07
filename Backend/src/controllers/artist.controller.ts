@@ -141,21 +141,32 @@ export const getArtistSongs = async (req: AuthRequest, res: Response) => {
             where: {
                 artists: {
                     some: {
-                        id: String(artistId)
+                        id: String(artistId),
+                        isDeleted: false
                     }
-                }
+                },
+                isDeleted: false
+            },
+            include: {
+                artists: {
+                    where: {
+                        isDeleted: false
+                    }
+                },
+                album: true
             },
             skip: (Number(page) - 1) * Number(limit),
             take: Number(limit),
-
         })
         const totalSongs = await prisma.song.count({
             where: {
                 artists: {
                     some: {
-                        id: String(artistId)
+                        id: String(artistId),
+                        isDeleted: false
                     }
-                }
+                },
+                isDeleted: false
             }
         })
 
