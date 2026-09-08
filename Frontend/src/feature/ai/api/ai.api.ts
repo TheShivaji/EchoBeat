@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 import type { Song } from "../../song/types/song.type";
 
 const api = axios.create({
@@ -42,3 +42,39 @@ export const generateAIPlaylistAPI = async (message: string): Promise<AIPlaylist
     const response = await api.post<AIPlaylistResponse>("/playlist", { message });
     return response.data;
 };
+
+export interface LyricsResult {
+    action: string;
+    target_language?: string | null;
+    translated_lyrics?: string | null;
+    meaning_summary?: string | null;
+    mood_and_vibe?: string | null;
+    key_themes?: string[];
+    poetic_breakdown?: string | null;
+}
+
+export interface AILyricsResponse {
+    success: boolean;
+    lyricsAvailable: boolean;
+    song?: {
+        id: string;
+        title: string;
+        artist: string;
+        originalLyrics?: string;
+    };
+    result?: LyricsResult;
+    message?: string;
+}
+
+export interface AILyricsPayload {
+    songId: string;
+    prompt?: string;
+    action?: "translate" | "explain" | "mood" | "all";
+    targetLanguage?: string;
+}
+
+export const getAILyricsAPI = async (payload: AILyricsPayload): Promise<AILyricsResponse> => {
+    const response = await api.post<AILyricsResponse>("/lyrics", payload);
+    return response.data;
+};
+

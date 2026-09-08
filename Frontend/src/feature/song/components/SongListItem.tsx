@@ -41,6 +41,9 @@ export const SongListItem = ({ song, index, rightContent }: SongListItemProps) =
                     alt={song.title} 
                     className="w-full h-full object-cover"
                     loading="lazy"
+                    onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop";
+                    }}
                 />
             </div>
 

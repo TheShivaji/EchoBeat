@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { understandMusicRequest, createAIPlaylistForUser } from "../service/ai.service.js";
+import { understandMusicRequest, createAIPlaylistForUser, getAILyricsExplanation } from "../service/ai.service.js";
 import { prisma } from "../config/db.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 
@@ -209,3 +209,35 @@ export const createAIPlaylist = async (req: AuthRequest, res: Response) => {
         });
     }
 };
+
+export const getAILyrics = async (req: AuthRequest, res: Response) => {
+    try {
+        const { songId, prompt, action, targetLanguage } = req.body;
+
+        if (!songId || !String(songId).trim()) {
+            return res.status(400).json({ success: false, message: "songId is required" });
+        }
+
+        const allowedActions = ["translate", "explain", "mood", "all"];
+        const normalizedAction = action && allowedActions.includes(action) ? action : "explain";
+
+        const response = await getAILyricsExplanation({
+            songId: String(songId).trim(),
+            prompt: prompt ? String(prompt).trim() : undefined,
+            action: normalizedAction,
+            targetLanguage: targetLanguage ? String(targetLanguage).trim() : "Hindi",
+        });
+
+        if (!response.success && response.error === "SONG_NOT_FOUND") {
+            return res.status(404).json(response);
+        }
+
+        return res.status(200).json(response);
+    } catch (error: any) {
+        console.error("AI lyrics processing error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Couldn't process the lyrics right now. Please try again.",
+        });
+    }
+};

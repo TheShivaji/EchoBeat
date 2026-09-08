@@ -3,6 +3,7 @@ import asyncio
 from dotenv import load_dotenv
 
 from ..schemas.recommendation import RecommendationIntent, PlaylistGenerating
+from ..schemas.lyrics import LyricsRequest, LyricsResponse
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -105,6 +106,60 @@ Actual songs will be retrieved from the EchoBeats database by the backend."""
     result = await chain.ainvoke({"message":message})
     print(result)
     return result
+
+async def process_lyrics_request(req: LyricsRequest) -> LyricsResponse:
+    lyrics_system_prompt = """You are the EchoBeats AI Lyrics Translator & Explainer Engine.
+
+Your job is to process ONLY the provided song lyrics according to the user's intent.
+
+CRITICAL CONSTRAINTS:
+1. Process ONLY the lyrics provided in the input. Do NOT invent, guess, or reconstruct missing lyrics.
+2. Do NOT invent real-world biographical facts or claim uncertain background as fact. Base your explanations strictly on the emotional, poetic, and thematic interpretation of the provided lyrics.
+3. Understand the user's intent from their prompt or explicit action:
+   - If TRANSLATION is requested (e.g. action="translate" or prompt asks to translate into a language):
+     * Translate the provided lyrics naturally and lyrically into the target language (default to Hindi if unspecified).
+     * Set 'action' to 'translate'.
+     * Set 'target_language' to the requested language.
+     * Leave 'meaning_summary', 'mood_and_vibe', 'key_themes', and 'poetic_breakdown' as null/empty unless also requested.
+   - If MEANING / EXPLANATION is requested (e.g. action="explain" or prompt asks "meaning samjhao", "what does this mean", "explain chorus/line"):
+     * Set 'action' to 'explain'.
+     * Provide a clear, insightful 'meaning_summary'.
+     * Provide 2-4 'key_themes' (e.g., ["Heartbreak", "Longing", "Self-Discovery"]).
+     * Leave 'translated_lyrics' as null unless translation was also requested.
+   - If MOOD / VIBE is requested (e.g. action="mood" or prompt asks "mood kya hai", "vibe"):
+     * Set 'action' to 'mood'.
+     * Set 'mood_and_vibe' to a concise, expressive description (e.g., "Melancholic, deeply nostalgic, and reflective").
+     * Provide a concise 'meaning_summary' highlighting the emotional atmosphere.
+     * Leave other unrequested fields null.
+   - If BOTH / COMPREHENSIVE is requested (e.g. action="all" or prompt asks "translate karke meaning samjhao"):
+     * Set 'action' to 'all'.
+     * Populate 'translated_lyrics', 'meaning_summary', 'mood_and_vibe', and 'key_themes'.
+4. Understand English, Hindi, and Hinglish prompts seamlessly.
+5. Return clean structured output."""
+
+    human_prompt = f"""Song Title: {req.title}
+Artist: {req.artist or 'Unknown Artist'}
+Requested Action: {req.action or 'explain'}
+Target Language: {req.target_language or 'Hindi'}
+User Prompt: {req.prompt or 'Explain the meaning of this song'}
+
+Provided Lyrics:
+---
+{req.lyrics}
+---"""
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", lyrics_system_prompt),
+        ("human", human_prompt),
+    ])
+
+    structured_llm = llm.with_structured_output(LyricsResponse, method="json_mode")
+    chain = prompt | structured_llm
+
+    result = await chain.ainvoke({})
+    print("Lyrics AI result:", result)
+    return result
+
 
 
 

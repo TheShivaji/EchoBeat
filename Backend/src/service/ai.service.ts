@@ -6,11 +6,12 @@ import { prisma } from "../config/db.js";
 /**
  * Shared HTTP client for all AI microservice calls.
  */
-const callAIService = async (endpoint: string, message: string): Promise<any> => {
+const callAIService = async (endpoint: string, payload: any): Promise<any> => {
+    const body = typeof payload === "string" ? { message: payload } : payload;
     const response = await fetch(`${config.aiServiceUrl}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -225,3 +226,73 @@ export const createAIPlaylistForUser = async (message: string, userId: string) =
 
     return { playlist, source };
 };
+
+interface LyricsServiceOptions {
+    songId: string;
+    prompt?: string | undefined;
+    action?: string | undefined;
+    targetLanguage?: string | undefined;
+}
+
+export const getAILyricsExplanation = async ({
+    songId,
+    prompt,
+    action = "explain",
+    targetLanguage = "Hindi",
+}: LyricsServiceOptions) => {
+    // 1. Fetch authoritative song record from PostgreSQL
+    const song = await prisma.song.findUnique({
+        where: { id: songId, isDeleted: false },
+        include: {
+            artists: {
+                where: { isDeleted: false },
+                select: { name: true },
+            },
+        },
+    });
+
+    if (!song) {
+        return {
+            success: false,
+            error: "SONG_NOT_FOUND",
+            message: "Song not found or has been removed.",
+        };
+    }
+
+    // 2. Strict non-hallucination check: if no lyrics, do not call LLM
+    if (!song.lyrics || !song.lyrics.trim()) {
+        return {
+            success: true,
+            lyricsAvailable: false,
+            song: {
+                id: song.id,
+                title: song.title,
+                artist: song.artists?.[0]?.name ?? "Unknown Artist",
+            },
+            message: "Lyrics are not available for this song yet.",
+        };
+    }
+
+    // 3. Call FastAPI with authoritative lyrics
+    const aiResult = await callAIService("/ai/lyrics", {
+        title: song.title,
+        artist: song.artists?.[0]?.name ?? null,
+        lyrics: song.lyrics,
+        prompt: prompt || null,
+        action: action || null,
+        target_language: targetLanguage || null,
+    });
+
+    return {
+        success: true,
+        lyricsAvailable: true,
+        song: {
+            id: song.id,
+            title: song.title,
+            artist: song.artists?.[0]?.name ?? "Unknown Artist",
+            originalLyrics: song.lyrics,
+        },
+        result: aiResult,
+    };
+};
+

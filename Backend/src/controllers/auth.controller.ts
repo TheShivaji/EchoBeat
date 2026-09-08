@@ -144,12 +144,13 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
             newAvatarUrl = imageUploadResponse.url;
         }
 
+        const updateData: { username?: string; avatarUrl?: string } = {};
+        if (username) updateData.username = username;
+        if (newAvatarUrl) updateData.avatarUrl = newAvatarUrl;
+
         const updatedUser = await prisma.user.update({
             where: { id: userId },
-            data: {
-                username: username !== undefined ? username : undefined,
-                avatarUrl: newAvatarUrl !== undefined ? newAvatarUrl : undefined,
-            },
+            data: updateData,
         });
 
         return res.status(200).json({

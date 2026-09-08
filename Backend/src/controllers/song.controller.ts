@@ -88,7 +88,7 @@ export const uploadSong = async (req: AuthRequest, res: Response) => {
         }
 
         const DEFAULT_IMAGE_URL =
-            "your-imagekit-default-cover-url";
+            "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop";
 
         // Check artist
         const artistExists = await prisma.artist.findFirst({

@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Play, Pause, Heart, Music } from "lucide-react";
+import { Play, Pause, Heart, Music, Sparkles } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentSong, togglePlay } from "../../players/state/playerSlice";
 import type { RootState } from "../../../app/app.store";
@@ -8,6 +8,7 @@ import { useSong } from "../hook/useSong";
 import SongDetailsSkeleton from "../components/SongDetailsSkeleton";
 import SongDetailsError from "../components/SongDetailsError";
 import SongCard from "../../home/components/SongCard";
+import { AILyricsModal } from "../../ai/components/AILyricsModal";
 
 // Helper to format duration from seconds to m:ss
 const formatDuration = (seconds: number) => {
@@ -21,6 +22,7 @@ const SongDetailsPage = () => {
     // 1. Read song ID from URL parameters
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
     
     // 2. Consume existing hook exactly as it is (now with relatedSongs)
     const { song, relatedSongs, loading, error, getSongDetails } = useSong();
@@ -70,6 +72,9 @@ const SongDetailsPage = () => {
                             src={song.imageUrl} 
                             alt={song.title} 
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop";
+                            }}
                         />
                     ) : (
                         <Music className="w-20 h-20 text-[#222222]" />
@@ -155,6 +160,16 @@ const SongDetailsPage = () => {
                             )}
                         </button>
 
+                        {/* AI Lyrics & Meaning Button */}
+                        <button 
+                            onClick={() => setIsLyricsModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#181818] border border-[#282828] text-[#d1d1d1] hover:text-white hover:border-[#444] hover:bg-[#222222] text-xs md:text-sm font-medium transition-all active:scale-95"
+                            aria-label="AI Lyrics & Meaning"
+                        >
+                            <Sparkles className="w-4 h-4 text-[#1db954]" />
+                            <span>Lyrics & Meaning</span>
+                        </button>
+
                     </div>
                 </div>
                 
@@ -189,6 +204,12 @@ const SongDetailsPage = () => {
                     )}
                 </div>
             )}
+
+            <AILyricsModal
+                isOpen={isLyricsModalOpen}
+                onClose={() => setIsLyricsModalOpen(false)}
+                song={song}
+            />
         </div>
     );
 };

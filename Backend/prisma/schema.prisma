@@ -38,6 +38,7 @@ model Song {
   duration  Int
   albumID   String?
   category  String?
+  lyrics    String?
   isDeleted Boolean @default(false)
   releasedDate DateTime @default(now())
   createdAt DateTime    @default(now())

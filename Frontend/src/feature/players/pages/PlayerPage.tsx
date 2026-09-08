@@ -13,10 +13,12 @@ import {
     Heart,
     Music,
     Plus,
+    Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { usePlayer } from "../hook/usePlayer";
 import AddToPlaylistModal from "../../playlist/components/AddToPlaylistModal";
+import { AILyricsModal } from "../../ai/components/AILyricsModal";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../app/app.store";
 import type { Song } from "../../song/types/song.type";
@@ -62,6 +64,9 @@ const SongArtwork = ({
                 alt={song.title}
                 className="w-full h-full object-cover"
                 draggable={false}
+                onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop";
+                }}
             />
         );
     }
@@ -203,6 +208,7 @@ const CurrentCard = ({
 const PlayerPage = () => {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
 
     /* ── Existing hook data (NO new state) ── */
     const {
@@ -424,6 +430,14 @@ const PlayerPage = () => {
                     </div>
                     <div className="flex items-center gap-4">
                         <button 
+                            onClick={() => setIsLyricsModalOpen(true)}
+                            className="flex-shrink-0 text-[#b3b3b3] hover:text-[#1db954] transition-colors p-1"
+                            aria-label="AI Lyrics & Meaning"
+                            title="AI Lyrics & Meaning"
+                        >
+                            <Sparkles size={22} strokeWidth={2} />
+                        </button>
+                        <button 
                             onClick={() => setIsModalOpen(true)}
                             className="flex-shrink-0 text-[#b3b3b3] hover:text-white transition-colors"
                             aria-label="Add to Playlist"
@@ -562,6 +576,11 @@ const PlayerPage = () => {
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
                 songId={currentSong.id} 
+            />
+            <AILyricsModal
+                isOpen={isLyricsModalOpen}
+                onClose={() => setIsLyricsModalOpen(false)}
+                song={currentSong}
             />
         </div>
     );
