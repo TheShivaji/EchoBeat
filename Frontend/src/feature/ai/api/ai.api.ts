@@ -78,3 +78,25 @@ export const getAILyricsAPI = async (payload: AILyricsPayload): Promise<AILyrics
     return response.data;
 };
 
+// ─── Echo Chatbot Agent ───────────────────────────────────────────────────────
+
+export interface ChatMessage {
+    role: "user" | "assistant";
+    content: string;
+    timestamp: number;
+}
+
+export interface ChatRequest {
+    message: string;
+    user_id?: string;
+}
+
+export interface ChatResponse {
+    reply: string;
+}
+
+export const sendChatMessageAPI = async (payload: ChatRequest): Promise<ChatResponse> => {
+    const response = await api.post<ChatResponse>("/assistant", payload);
+    return response.data;
+};
+

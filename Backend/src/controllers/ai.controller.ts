@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { understandMusicRequest, createAIPlaylistForUser, getAILyricsExplanation } from "../service/ai.service.js";
+import { understandMusicRequest, createAIPlaylistForUser, getAILyricsExplanation, callChatbotAssistant } from "../service/ai.service.js";
 import { prisma } from "../config/db.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 
@@ -240,4 +240,84 @@ export const getAILyrics = async (req: AuthRequest, res: Response) => {
             message: "Couldn't process the lyrics right now. Please try again.",
         });
     }
-};
+};
+
+export const chatbotAssistant = async (req: AuthRequest, res: Response) => {
+    try {
+        const { message } = req.body;
+
+        if (!message || !String(message).trim()) {
+            return res.status(400).json({ success: false, message: "Message is required" });
+        }
+
+        const userId = req.user?.id;
+
+        // Pre-fetch all user-specific data so Python tools don't need to call back
+        const [likedSongsData, playlistsData, homeData] = await Promise.all([
+            prisma.likedSong.findMany({
+                where: { userId },
+                include: {
+                    song: {
+                        include: {
+                            artists: { where: { isDeleted: false }, select: { name: true } },
+                        },
+                    },
+                },
+                take: 50,
+            }),
+            prisma.playlist.findMany({
+                where: { userId },
+                select: { id: true, name: true, description: true },
+                take: 20,
+            }),
+            prisma.playHistory.findMany({
+                where: { userId },
+                include: {
+                    song: {
+                        include: {
+                            artists: { where: { isDeleted: false }, select: { name: true } },
+                        },
+                    },
+                },
+                orderBy: { playedAt: "desc" },
+                take: 20,
+            }),
+        ]);
+
+        // Shape data for Python
+        const userContext = {
+            liked_songs: likedSongsData.map((ls: any) => ({
+                id: ls.song.id,
+                title: ls.song.title,
+                artist: ls.song.artists?.[0]?.name ?? "Unknown Artist",
+                category: ls.song.category ?? null,
+            })),
+            playlists: playlistsData.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                description: p.description ?? null,
+            })),
+            recent_played: homeData.map((h: any) => ({
+                id: h.song.id,
+                title: h.song.title,
+                artist: h.song.artists?.[0]?.name ?? "Unknown Artist",
+                category: h.song.category ?? null,
+            })),
+        };
+
+        const result = await callChatbotAssistant({
+            message: String(message).trim(),
+            userId,
+            userContext,
+        });
+
+        return res.status(200).json(result);
+    } catch (error: any) {
+        console.error("Chatbot assistant error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Echo Agent is unavailable right now. Please try again.",
+        });
+    }
+};
+

@@ -1,12 +1,32 @@
 import os
 import asyncio
 from dotenv import load_dotenv
+from typing import Any
 
 from ..schemas.recommendation import RecommendationIntent, PlaylistGenerating
 from ..schemas.lyrics import LyricsRequest, LyricsResponse
+from ..schemas.assistant import (
+    ChatRequest,
+    ChatResponse,
+    GetLikedSongsArgs,
+    SearchSongsArgs,
+    RecentPlayedArgs,
+    GetPlaylistArgs,
+    GetArtistArgs,
+    CreatePlaylistArgs,
+    UserContext,
+)
+from .prompt import (
+    music_request_prompt,
+    playlist_generating_prompt,
+    lyrics_system_prompt,
+    chatbot_assistant_prompt,
+)
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-
+from langchain_core.tools import tool
+from langchain.agents import create_agent
 
 
 load_dotenv()
@@ -16,127 +36,158 @@ api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     raise ValueError("GOOGLE_API_KEY is not set")
 
-llm  = ChatGoogleGenerativeAI(
-        model = "gemini-3.5-flash-lite",
-        google_api_key = api_key
-    )
-
-async def understand_music_request (message):
-
-    system_prompt = """You are the query understanding engine for EchoBeats.
-
-Your job is to understand the user's music request and extract structured search intent.
-
-Extract:
-- artist
-- category
-- limit
-
-Rules:
-1. Return only valid JSON.
-2. Do not recommend or invent songs.
-3. Do not answer the user's question.
-4. If an artist is mentioned, return the artist name.
-5. If a music category/mood is mentioned, return it.
-6. If the user specifies a number of songs, use that number.
-7. If no limit is specified, use 10.
-8. If a field is not present, return null.
-9. Normalize obvious artist names when possible.
-10. Keep the category concise, such as "sad", "romantic", "party", "workout", or "devotional".
-
-Output format:
-
-{{
-  "artist": "string | null",
-  "category": "string | null",
-  "limit": number
-}}"""
+llm = ChatGoogleGenerativeAI(
+    model="gemini-3.5-flash-lite",
+    google_api_key=api_key,
+)
 
 
+# ─── Tool Builder: reads from pre-fetched user_context ────────────────────────
+
+def build_tools(user_context: UserContext):
+    """
+    Build LangChain tools that read directly from the user_context
+    pre-fetched by Node.js (no HTTP calls to backend needed).
+    """
+
+    # Merge liked_songs + recent_played (deduped by title+artist) for broader search
+    def _all_songs() -> list:
+        seen = set()
+        merged = []
+        for s in list(user_context.liked_songs) + list(user_context.recent_played):
+            key = ((s.title or "").lower(), (s.artist or "").lower())
+            if key not in seen:
+                seen.add(key)
+                merged.append(s)
+        return merged
+
+    @tool(args_schema=SearchSongsArgs)
+    async def search_songs(
+        query: str | None = None,
+        artist_name: str | None = None,
+        category: str | None = None,
+        limit: int = 10,
+    ) -> str:
+        """Search songs from the user's full library (liked + recently played) by query, artist, or mood/category."""
+        q_lower = (query or artist_name or category or "").lower()
+        all_songs = _all_songs()
+        results = [
+            s for s in all_songs
+            if q_lower in (s.title or "").lower()
+            or q_lower in (s.artist or "").lower()
+            or q_lower in (s.category or "").lower()
+        ][:limit]
+        if not results:
+            return f"Aapki library mein '{q_lower}' se koi matching song nahi mila."
+        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in results)
+
+    @tool(args_schema=RecentPlayedArgs)
+    async def get_recent_played(limit: int = 10) -> str:
+        """Fetch the user's recently played songs from their listening history."""
+        songs = user_context.recent_played[:limit]
+        if not songs:
+            return "Koi recently played songs nahi mile. Pehle kuch gaane suniye!"
+        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in songs)
+
+    @tool(args_schema=GetLikedSongsArgs)
+    async def get_liked_songs(
+        artist_name: str | None = None,
+        limit: int = 20,
+        page: int = 1,
+    ) -> str:
+        """Fetch the user's liked/favorited songs, optionally filtered by artist name."""
+        songs = user_context.liked_songs
+        if artist_name:
+            a_lower = artist_name.lower()
+            songs = [s for s in songs if a_lower in (s.artist or "").lower()]
+        start = (page - 1) * limit
+        songs = songs[start: start + limit]
+        if not songs:
+            msg = f"{artist_name} ke" if artist_name else "Koi"
+            return f"{msg} liked songs nahi mile."
+        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in songs)
+
+    @tool(args_schema=GetPlaylistArgs)
+    async def get_playlist(
+        playlist_name: str | None = None,
+        limit: int = 10,
+    ) -> str:
+        """Fetch the user's playlists, optionally filtering by playlist name."""
+        playlists = user_context.playlists
+        if playlist_name:
+            p_lower = playlist_name.lower()
+            playlists = [p for p in playlists if p_lower in (p.name or "").lower()]
+        playlists = playlists[:limit]
+        if not playlists:
+            return "Koi playlist nahi mili."
+        return "\n".join(f"• {p.name or 'Unknown'}" for p in playlists)
+
+    @tool(args_schema=GetArtistArgs)
+    async def get_artist(artist_name: str, limit: int = 10) -> str:
+        """Fetch songs for a specific artist from the user's full library (liked + recently played)."""
+        a_lower = artist_name.lower()
+        all_songs = _all_songs()
+        songs = [
+            s for s in all_songs
+            if a_lower in (s.artist or "").lower()
+        ][:limit]
+        if not songs:
+            return (
+                f"{artist_name} ke koi gaane aapki library (liked ya recently played) mein nahi mile.\n"
+                f"Unke gaane search karke suniye, phir library mein automatically aayenge!"
+            )
+        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in songs)
+
+    @tool(args_schema=CreatePlaylistArgs)
+    async def create_playlist(
+        playlist_name: str,
+        description: str | None = None,
+    ) -> str:
+        """Suggest creating a new playlist with a name and optional description."""
+        desc = description or f"AI generated playlist: {playlist_name}"
+        return (
+            f"✅ Playlist '{playlist_name}' create karne ke liye ready hai!\n"
+            f"Description: {desc}\n"
+            f"Note: App mein 'Create Playlist' button se confirm karein."
+        )
+
+    return [
+        search_songs,
+        get_recent_played,
+        get_liked_songs,
+        get_playlist,
+        get_artist,
+        create_playlist,
+    ]
+
+
+# ─── Existing LLM Chains ──────────────────────────────────────────────────────
+
+async def understand_music_request(message):
     prompt = ChatPromptTemplate.from_messages([
-        ("system" , system_prompt),
-        ("human" , "{message}"),
+        ("system", music_request_prompt),
+        ("human", "{message}"),
     ])
-
-    structured_llm = llm.with_structured_output(RecommendationIntent,method="json_mode")
-
+    structured_llm = llm.with_structured_output(RecommendationIntent, method="json_mode")
     chain = prompt | structured_llm
-
-    result = await chain.ainvoke({"message":message})
+    result = await chain.ainvoke({"message": message})
     print(result)
     return result
+
 
 async def playlist_genrating(message: str):
-
-    playlist_prompt = """You are the EchoBeats AI Playlist Intent Understanding Engine.
-
-Your job is to understand the user's playlist request and extract structured intent.
-
-Extract:
-- playlist_name
-- category
-- artist
-- limit
-
-Rules:
-- Return only structured output.
-- Do not generate or recommend song names.
-- Do not invent songs, artists, or categories.
-- If an artist is mentioned, extract the artist name.
-- If a mood, genre, activity, or purpose is mentioned, use it as category.
-- If the user specifies a number of songs, use that number as limit.
-- If no number is specified, default limit to 10.
-- If a field is not mentioned or cannot be determined, return null.
-- Keep category short and normalized, such as "sad", "romantic", "workout", "coding", "party", "devotional".
-- Generate a concise playlist_name based on the user's request.
-- Understand Hinglish, Hindi, and English requests.
-
-The LLM only understands the user's intent.
-Actual songs will be retrieved from the EchoBeats database by the backend."""
-
     prompt = ChatPromptTemplate.from_messages([
-        ("system" , playlist_prompt),
-        ("human" , "{message}"),
+        ("system", playlist_generating_prompt),
+        ("human", "{message}"),
     ])
-
-    structured_llm = llm.with_structured_output(PlaylistGenerating,method="json_mode")
-
+    structured_llm = llm.with_structured_output(PlaylistGenerating, method="json_mode")
     chain = prompt | structured_llm
-
-    result = await chain.ainvoke({"message":message})
+    result = await chain.ainvoke({"message": message})
     print(result)
     return result
 
+
 async def process_lyrics_request(req: LyricsRequest) -> LyricsResponse:
-    lyrics_system_prompt = """You are the EchoBeats AI Lyrics Translator & Explainer Engine.
-
-Your job is to process ONLY the provided song lyrics according to the user's intent.
-
-CRITICAL CONSTRAINTS:
-1. Process ONLY the lyrics provided in the input. Do NOT invent, guess, or reconstruct missing lyrics.
-2. Do NOT invent real-world biographical facts or claim uncertain background as fact. Base your explanations strictly on the emotional, poetic, and thematic interpretation of the provided lyrics.
-3. Understand the user's intent from their prompt or explicit action:
-   - If TRANSLATION is requested (e.g. action="translate" or prompt asks to translate into a language):
-     * Translate the provided lyrics naturally and lyrically into the target language (default to Hindi if unspecified).
-     * Set 'action' to 'translate'.
-     * Set 'target_language' to the requested language.
-     * Leave 'meaning_summary', 'mood_and_vibe', 'key_themes', and 'poetic_breakdown' as null/empty unless also requested.
-   - If MEANING / EXPLANATION is requested (e.g. action="explain" or prompt asks "meaning samjhao", "what does this mean", "explain chorus/line"):
-     * Set 'action' to 'explain'.
-     * Provide a clear, insightful 'meaning_summary'.
-     * Provide 2-4 'key_themes' (e.g., ["Heartbreak", "Longing", "Self-Discovery"]).
-     * Leave 'translated_lyrics' as null unless translation was also requested.
-   - If MOOD / VIBE is requested (e.g. action="mood" or prompt asks "mood kya hai", "vibe"):
-     * Set 'action' to 'mood'.
-     * Set 'mood_and_vibe' to a concise, expressive description (e.g., "Melancholic, deeply nostalgic, and reflective").
-     * Provide a concise 'meaning_summary' highlighting the emotional atmosphere.
-     * Leave other unrequested fields null.
-   - If BOTH / COMPREHENSIVE is requested (e.g. action="all" or prompt asks "translate karke meaning samjhao"):
-     * Set 'action' to 'all'.
-     * Populate 'translated_lyrics', 'meaning_summary', 'mood_and_vibe', and 'key_themes'.
-4. Understand English, Hindi, and Hinglish prompts seamlessly.
-5. Return clean structured output."""
-
     human_prompt = f"""Song Title: {req.title}
 Artist: {req.artist or 'Unknown Artist'}
 Requested Action: {req.action or 'explain'}
@@ -152,14 +203,41 @@ Provided Lyrics:
         ("system", lyrics_system_prompt),
         ("human", human_prompt),
     ])
-
     structured_llm = llm.with_structured_output(LyricsResponse, method="json_mode")
     chain = prompt | structured_llm
-
     result = await chain.ainvoke({})
     print("Lyrics AI result:", result)
     return result
 
 
+# ─── Echo Agent ────────────────────────────────────────────────────────────────
 
+async def chatbot_assistant(req: ChatRequest) -> ChatResponse:
+    """
+    Run the EchoBeats ReAct agent.
+    Tools read from user_context (pre-fetched by Node.js) — no backend HTTP calls needed.
+    """
+    ctx = req.user_context or UserContext()
+    tools = build_tools(ctx)
 
+    agent = create_agent(
+        model=llm,
+        tools=tools,
+        system_prompt=chatbot_assistant_prompt,
+    )
+
+    messages = [{"role": "user", "content": req.message}]
+    result = await agent.ainvoke({"messages": messages})
+
+    final_message = result["messages"][-1]
+    content = final_message.content if hasattr(final_message, "content") else str(final_message)
+    if isinstance(content, list):
+        reply = " ".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
+    else:
+        reply = str(content)
+
+    # Safe print for Windows consoles (avoids UnicodeEncodeError with emojis)
+    safe_reply = reply.encode('ascii', 'backslashreplace').decode('ascii')
+    print("Echo Agent reply:", safe_reply)
+
+    return ChatResponse(reply=reply)

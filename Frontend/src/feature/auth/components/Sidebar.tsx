@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -11,10 +12,13 @@ import {
     LogOut,
     Music2,
     Upload,
-    UserPlus
+    UserPlus,
+    Bot,
+    Sparkles,
 } from "lucide-react";
 import type { RootState } from "../../../app/app.store";
 import type { User } from "../types/auth.types";
+import { EchoChat } from "../../ai/components/EchoChat";
 
 // ─── Navigation data ─────────────────────────────────────────────────────────
 
@@ -131,6 +135,8 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
     // Backend stores 'username' — use as display name fallback
     const displayName = user?.name || user?.username || "";
 
+    const [chatOpen, setChatOpen] = useState(false);
+
     return (
         <>
             {/* ── Desktop Sidebar ─────────────────────────────────────────── */}
@@ -138,7 +144,7 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                 aria-label="Main navigation"
                 className="hidden md:flex flex-col fixed top-0 left-0 h-screen w-[240px] bg-[#111111] border-r border-[#1e1e1e] z-40 select-none"
             >
-                {/* Brand */}
+                {/* Brand + AI button */}
                 <div className="flex items-center gap-2.5 px-5 pt-7 pb-7 border-b border-[#1a1a1a]">
                     <Disc3
                         size={16}
@@ -146,9 +152,21 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                         className="text-[#c0c0c0] shrink-0"
                         aria-hidden="true"
                     />
-                    <span className="text-[13px] font-semibold text-[#c8c8c8] tracking-[0.08em] uppercase">
+                    <span className="text-[13px] font-semibold text-[#c8c8c8] tracking-[0.08em] uppercase flex-1">
                         EchoBeats
                     </span>
+                    {/* Echo Agent trigger */}
+                    <button
+                        id="echo-agent-trigger"
+                        type="button"
+                        onClick={() => setChatOpen(true)}
+                        aria-label="Open Echo AI Assistant"
+                        title="Echo Agent"
+                        className="relative group w-7 h-7 rounded-full flex items-center justify-center bg-[#1ed760] hover:bg-[#1db954] transition-all duration-200 shadow-md shadow-[#1ed760]/20"
+                    >
+                        <Bot size={13} className="text-black" />
+                        <Sparkles size={8} className="absolute -top-0.5 -right-0.5 text-white animate-pulse drop-shadow-md" />
+                    </button>
                 </div>
 
                 {/* Scrollable nav */}
@@ -297,19 +315,29 @@ const Sidebar = ({ onLogout }: SidebarProps) => {
                         </li>
                     ))}
 
-                    {/* More / profile */}
+                    {/* Echo Agent — mobile */}
                     <li className="flex-1">
                         <button
+                            id="echo-agent-trigger-mobile"
                             type="button"
-                            className="flex flex-col items-center gap-1.5 py-3 w-full text-[#555555] hover:text-[#aaaaaa] transition-colors duration-150 focus:outline-none"
-                            aria-label="More"
+                            onClick={() => setChatOpen(true)}
+                            className="flex flex-col items-center gap-1.5 py-3 w-full transition-colors duration-150 focus:outline-none"
+                            aria-label="Open Echo AI Assistant"
                         >
-                            <Music2 size={20} strokeWidth={1.75} />
-                            <span className="text-[10px] font-medium">More</span>
+                            <div className="relative">
+                                <div className="w-6 h-6 rounded-full bg-[#1ed760] flex items-center justify-center">
+                                    <Bot size={13} className="text-black" />
+                                </div>
+                                <Sparkles size={8} className="absolute -top-0.5 -right-0.5 text-white animate-pulse drop-shadow-md" />
+                            </div>
+                            <span className="text-[10px] font-medium text-[#1ed760]">Echo AI</span>
                         </button>
                     </li>
                 </ul>
             </nav>
+
+            {/* ── Echo Agent Chat Window ───────────────────────────────── */}
+            <EchoChat open={chatOpen} onClose={() => setChatOpen(false)} />
         </>
     );
 };
