@@ -4,6 +4,8 @@ import type { Response } from "express";
 import { Prisma } from "@prisma/client";
 import { routeQuery } from "../service/query-router.service.js";
 import { getAIRecommendations } from "../service/ai.service.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
 
 const validation = async function (res: Response, req: AuthRequest) {
     const { q, page = 1, limit = 20 } = req.query;
@@ -11,9 +13,7 @@ const validation = async function (res: Response, req: AuthRequest) {
     const searchQuery = String(q).trim();
 
     if (!q || searchQuery === "") {
-        res.status(400).json({
-            message: "Query is required"
-        });
+        res.status(400).json({ message: "Query is required" });
         return null;
     }
     if (Number(page) < 1 || Number(limit) < 1) {
@@ -32,257 +32,177 @@ const validation = async function (res: Response, req: AuthRequest) {
     }
 }
 
-export const searchArtists = async (req: AuthRequest, res: Response) => {
-    try {
+export const searchArtists = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const searchParams = await validation(res, req)
+    if (!searchParams) return;
+    const { searchQuery, skip, take, page, limit } = searchParams;
 
-        const searchParams = await validation(res, req)
-        if (!searchParams) return;
-        const { searchQuery, skip, take, page, limit } = searchParams;
+    const artist = await prisma.artist.findMany({
+        where: {
+            isDeleted: false,
+            name: { contains: searchQuery, mode: "insensitive" }
+        },
+        skip,
+        take
+    })
 
-        const artist = await prisma.artist.findMany({
-            where: {
-                isDeleted: false,
-                name: {
-                    contains: searchQuery,
-                    mode: "insensitive"
-                }
-            },
-            skip,
-            take
-        })
-
-        const totalArtists = await prisma.artist.count({
-            where: {
-                isDeleted: false,
-                name: {
-                    contains: searchQuery,
-                    mode: "insensitive"
-                }
-            }
-        })
-
-        return res.status(200).json({
-            success: true,
-            message: "artists found",
-            artists: artist,
-            pagination: {
-                total: totalArtists,
-                page,
-                limit,
-                totalPages: Math.ceil(totalArtists / limit)
-            }
-        })
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
-export const searchSong = async function (req: AuthRequest, res: Response) {
-
-    try {
-        const searchParams = await validation(res, req)
-        if (!searchParams) return;
-        const { searchQuery, skip, take, page, limit } = searchParams;
-        
-        // 1. Query Router
-        const decision = routeQuery(searchQuery);
-
-        if (decision === 'AI_RECOMMENDATION') {
-            try {
-                // 2. AI Service Flow
-                const aiResult = await getAIRecommendations(searchQuery);
-                return res.status(200).json({
-                    success: true,
-                    message: "songs found",
-                    source: aiResult.source, // unified response metadata
-                    songs: aiResult.songs,
-                    pagination: {
-                        total: aiResult.songs.length,
-                        page,
-                        limit,
-                        totalPages: Math.ceil(aiResult.songs.length / limit)
-                    }
-                });
-            } catch (error) {
-                console.error("AI Recommendation failed, falling back to normal search", error);
-                // Fallback to normal search if AI fails
-            }
+    const totalArtists = await prisma.artist.count({
+        where: {
+            isDeleted: false,
+            name: { contains: searchQuery, mode: "insensitive" }
         }
+    })
 
-        // 3. Normal Search Flow (Prisma)
-        const where: Prisma.SongWhereInput = {
-            // Ensure no artist on the song is deleted
-            artists: {
-                none: {
-                    isDeleted: true
+    return res.status(200).json({
+        success: true,
+        message: "artists found",
+        artists: artist,
+        pagination: { total: totalArtists, page, limit, totalPages: Math.ceil(totalArtists / limit) }
+    })
+});
+
+export const searchSong = asyncHandler(async function (req: AuthRequest, res: Response) {
+    const requestStart = performance.now();
+
+    const searchParams = await validation(res, req);
+    if (!searchParams) return;
+
+    const { searchQuery, skip, take, page, limit } = searchParams;
+
+    req.log.info({ searchQuery }, "Search request received");
+
+    // Query Router
+    const decision = routeQuery(searchQuery);
+
+    if (decision === "AI_RECOMMENDATION") {
+        req.log.info({ decision }, "Query routed");
+
+        try {
+            const aiResult = await getAIRecommendations(searchQuery);
+
+            req.log.info({ resultCount: aiResult.songs.length }, "AI recommendation completed");
+            req.log.info({ durationMs: Math.round(performance.now() - requestStart) }, "Search request completed");
+
+            return res.status(200).json({
+                success: true,
+                message: "songs found",
+                source: aiResult.source,
+                songs: aiResult.songs,
+                pagination: {
+                    total: aiResult.songs.length,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(aiResult.songs.length / limit)
                 }
-            },
-            OR: [
-                {
-                    title: {
-                        contains: searchQuery,
-                        mode: "insensitive"
-                    }
-                },
-                {
-                    artists: {
-                        some: {
-                            name: {
-                                contains: searchQuery,
-                                mode: "insensitive"
-                            },
-                            // Ensure the searched artist is also not deleted
-                            isDeleted: false
-                        }
-                    }
-                }
-            ]
+            });
+
+        } catch (error) {
+            req.log.error({ error }, "AI recommendation failed");
+            // Falls through to normal search
         }
-
-
-        const song = await prisma.song.findMany({
-            where,
-            skip,
-            take,
-            include: {
-                artists: true
-            }
-        });
-
-        const totalSong = await prisma.song.count({
-            where
-        })
-
-        return res.status(200).json({
-            success: true,
-            message: "songs found",
-            source: "search",
-            songs: song,
-            pagination: {
-                total: Number(totalSong),
-                page,
-                limit,
-                totalPages: Math.ceil(totalSong / limit)
-            }
-        })
-
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Internal server error" });
     }
-}
 
-export const searchAlbum = async (req: AuthRequest, res: Response) => {
-    try {
-        const searchParams = await validation(res, req)
-        if (!searchParams) return
-        const { searchQuery, take, page, limit, skip } = searchParams
-
-        const where: Prisma.AlbumWhereInput = {
-            artists: {
-                none: {
-                    isDeleted: true
-                }
-            },
-            OR: [
-                {
-                    title: {
-                        contains: searchQuery,
-                        mode: "insensitive"
-                    }
-                },
-                {
-                    artists: {
-                        some: {
-                            name: {
-                                contains: searchQuery,
-                                mode: "insensitive"
-                            },
-                            isDeleted: false
-                        }
+    // Normal Search
+    const where: Prisma.SongWhereInput = {
+        artists: { none: { isDeleted: true } },
+        OR: [
+            { title: { contains: searchQuery, mode: "insensitive" } },
+            {
+                artists: {
+                    some: {
+                        name: { contains: searchQuery, mode: "insensitive" },
+                        isDeleted: false
                     }
                 }
-            ]
+            }
+        ]
+    };
+
+    const dbStart = performance.now();
+    req.log.info({ searchQuery }, "Database query started");
+
+    const findManyStart = performance.now();
+    const song = await prisma.song.findMany({ where, skip, take, include: { artists: true } });
+    const findManyDurationMs = Math.round(performance.now() - findManyStart);
+
+    const countStart = performance.now();
+    const totalSong = await prisma.song.count({ where });
+    const countDurationMs = Math.round(performance.now() - countStart);
+
+    req.log.info(
+        { resultCount: song.length, findManyDurationMs, countDurationMs, totalDurationMs: Math.round(performance.now() - dbStart) },
+        "Database queries completed (findMany + count)"
+    );
+
+    const response = {
+        success: true,
+        message: "songs found",
+        source: "search",
+        songs: song,
+        pagination: {
+            total: Number(totalSong),
+            page,
+            limit,
+            totalPages: Math.ceil(totalSong / limit)
         }
+    };
 
-        const album = await prisma.album.findMany({
-            where,
-            skip,
-            take
-        })
+    req.log.info({ durationMs: Math.round(performance.now() - requestStart) }, "Search request completed");
 
-        const totalAlbum = await prisma.album.count({
-            where
-        })
+    return res.status(200).json(response);
+});
 
-        return res.status(200).json({
-            success: true,
-            message: "albums found",
-            albums: album,
-            pagination: {
-                total: Number(totalAlbum),
-                page,
-                limit,
-                totalPages: Math.ceil(totalAlbum / limit)
-            }
-        })
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
+export const searchAlbum = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const searchParams = await validation(res, req)
+    if (!searchParams) return
+    const { searchQuery, take, page, limit, skip } = searchParams
 
-export const searchPlaylist = async (req: AuthRequest, res: Response) => {
-    try {
-        const searchParams = await validation(res, req)
-        if (!searchParams) return
-        const { searchQuery, take, page, limit, skip } = searchParams
-
-        const where: Prisma.PlaylistWhereInput = {
-            isPublic: true, 
-            OR: [
-                {
-                    name: {
-                        contains: searchQuery,
-                        mode: "insensitive"
-                    }
-                },
-                {
-                    description: {
-                        contains: searchQuery,
-                        mode: "insensitive"
+    const where: Prisma.AlbumWhereInput = {
+        artists: { none: { isDeleted: true } },
+        OR: [
+            { title: { contains: searchQuery, mode: "insensitive" } },
+            {
+                artists: {
+                    some: {
+                        name: { contains: searchQuery, mode: "insensitive" },
+                        isDeleted: false
                     }
                 }
-            ]
-        }
-
-        const playlist = await prisma.playlist.findMany({
-            where,
-            skip,
-            take,
-            orderBy: {
-                name: "asc"
             }
-        })
-
-        const totalPlaylist = await prisma.playlist.count({
-            where
-        })
-
-        return res.status(200).json({
-            success: true,
-            message: "playlists found",
-            playlists: playlist,
-            pagination: {
-                total: Number(totalPlaylist),
-                page,
-                limit,
-                totalPages: Math.ceil(totalPlaylist / limit)
-            }
-        })
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Internal server error" });
+        ]
     }
-}
+
+    const album = await prisma.album.findMany({ where, skip, take })
+    const totalAlbum = await prisma.album.count({ where })
+
+    return res.status(200).json({
+        success: true,
+        message: "albums found",
+        albums: album,
+        pagination: { total: Number(totalAlbum), page, limit, totalPages: Math.ceil(totalAlbum / limit) }
+    })
+});
+
+export const searchPlaylist = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const searchParams = await validation(res, req)
+    if (!searchParams) return
+    const { searchQuery, take, page, limit, skip } = searchParams
+
+    const where: Prisma.PlaylistWhereInput = {
+        isPublic: true,
+        OR: [
+            { name: { contains: searchQuery, mode: "insensitive" } },
+            { description: { contains: searchQuery, mode: "insensitive" } }
+        ]
+    }
+
+    const playlist = await prisma.playlist.findMany({ where, skip, take, orderBy: { name: "asc" } })
+    const totalPlaylist = await prisma.playlist.count({ where })
+
+    return res.status(200).json({
+        success: true,
+        message: "playlists found",
+        playlists: playlist,
+        pagination: { total: Number(totalPlaylist), page, limit, totalPages: Math.ceil(totalPlaylist / limit) }
+    })
+});

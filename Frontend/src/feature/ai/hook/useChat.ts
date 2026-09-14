@@ -48,6 +48,18 @@ export const useChat = () => {
                     timestamp: Date.now(),
                 };
                 setMessages((prev) => [...prev, assistantMsg]);
+
+                // If a playlist was actually created, show a success notification
+                if (res.playlist) {
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            role: "assistant",
+                            content: `✅ **"${res.playlist.name}"** playlist successfully ban gayi! Aap apni playlists mein ja ke dekh sakte hain. 🎶`,
+                            timestamp: Date.now(),
+                        },
+                    ]);
+                }
             } catch {
                 setMessages((prev) => [
                     ...prev,

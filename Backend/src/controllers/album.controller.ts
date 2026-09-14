@@ -2,185 +2,108 @@ import { prisma } from "../config/db.js"
 import { imagekit } from "../utils/multer.js"
 import type { AuthRequest } from "../middleware/auth.middleware.js"
 import type { Response } from "express"
+import asyncHandler from "../utils/asyncHandler.js"
+import AppError from "../utils/AppError.js"
 
-export const createAlbum = async(req:AuthRequest , res:Response) =>{
-    try {
-        const {artistId , title , releaseYear } = req.body;
-        const imageFile = req.file;
+export const createAlbum = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { artistId, title, releaseYear } = req.body;
+    const imageFile = req.file;
 
-        if(!artistId || !title || !releaseYear ){
-            return res.status(400).json({message:"All fields (title, artistId, releaseYear) are required"})
-        }
+    if (!artistId || !title || !releaseYear) throw new AppError("All fields (title, artistId, releaseYear) are required", 400);
 
-        const parsedReleaseYear = parseInt(releaseYear, 10);
-        if (isNaN(parsedReleaseYear)) {
-            return res.status(400).json({ message: "Release year must be a valid number" });
-        }
+    const parsedReleaseYear = parseInt(releaseYear, 10);
+    if (isNaN(parsedReleaseYear)) throw new AppError("Release year must be a valid number", 400);
 
-        // Verify artist exists and is not deleted
-        const artistExists = await prisma.artist.findFirst({ 
-            where: { 
-                id: String(artistId),
-                isDeleted: false
-            } 
+    // Verify artist exists and is not deleted
+    const artistExists = await prisma.artist.findFirst({
+        where: { id: String(artistId), isDeleted: false }
+    });
+    if (!artistExists) throw new AppError("Artist not found", 404);
+
+    let finalImageUrl = "default-album-cover-url";
+
+    if (imageFile) {
+        const uploadResponse = await imagekit.upload({
+            file: imageFile.buffer,
+            fileName: imageFile.originalname,
+            folder: "Albums/Images",
         });
-        if (!artistExists) {
-            return res.status(404).json({ message: "Artist not found" });
-        }
-
-        let finalImageUrl = "default-album-cover-url"; // Change to your default if needed
-
-        if (imageFile) {
-            const uploadResponse = await imagekit.upload({
-                file: imageFile.buffer,
-                fileName: imageFile.originalname,
-                folder: "Albums/Images",
-            });
-            finalImageUrl = uploadResponse.url;
-        }
-
-        const album = await prisma.album.create({
-            data:{
-                title,
-                imageUrl: finalImageUrl,
-                releaseYear: parsedReleaseYear,
-                artists: {
-                    connect: { id: String(artistId) }
-                }
-            }
-        })
-
-        return res.status(201).json({message:"Album created successfully" , album})
-    } catch (error) {
-        console.error("Error creating album:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        finalImageUrl = uploadResponse.url;
     }
-}
 
-export const getAllAlbums = async(req:AuthRequest , res:Response) =>{
-    try {
-        const albums = await prisma.album.findMany({
-            include: {
-                songs: true,
-                artists: true
+    const album = await prisma.album.create({
+        data: {
+            title,
+            imageUrl: finalImageUrl,
+            releaseYear: parsedReleaseYear,
+            artists: { connect: { id: String(artistId) } }
+        }
+    });
+
+    return res.status(201).json({ message: "Album created successfully", album });
+});
+
+export const getAllAlbums = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const albums = await prisma.album.findMany({
+        include: { songs: true, artists: true }
+    });
+    return res.status(200).json({ message: "All albums fetched successfully", albums });
+});
+
+export const getAlbumDetails = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    if (!id) throw new AppError("Album ID is required", 400);
+
+    const album = await prisma.album.findUnique({
+        where: { id: String(id) },
+        include: { songs: true, artists: true }
+    });
+    if (!album) throw new AppError("Album not found", 404);
+
+    return res.status(200).json({ message: "Album details fetched successfully", album });
+});
+
+export const deleteAlbum = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    if (!id) throw new AppError("Album ID is required", 400);
+
+    const findAlbum = await prisma.album.findUnique({ where: { id: String(id) } });
+    if (!findAlbum) throw new AppError("Album not found", 404);
+
+    const album = await prisma.album.delete({ where: { id: String(id) } });
+    return res.status(200).json({ message: "Album deleted successfully", album });
+});
+
+export const updateAlbum = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    if (!id) throw new AppError("Album ID is required", 400);
+
+    const { artistId, imageUrl, title, releaseYear } = req.body;
+    if (!artistId || !imageUrl || !title || !releaseYear) throw new AppError("All fields (including artistId) are required", 400);
+
+    const findAlbum = await prisma.album.findUnique({ where: { id: String(id) } });
+    if (!findAlbum) throw new AppError("Album not found", 404);
+
+    const parsedReleaseYear = parseInt(releaseYear, 10);
+    if (isNaN(parsedReleaseYear)) throw new AppError("Release year must be a valid number", 400);
+
+    const artistExists = await prisma.artist.findFirst({
+        where: { id: String(artistId), isDeleted: false }
+    });
+    if (!artistExists) throw new AppError("Artist not found", 404);
+
+    const album = await prisma.album.update({
+        where: { id: String(id) },
+        data: {
+            title,
+            imageUrl,
+            releaseYear: parsedReleaseYear,
+            artists: {
+                // This links the new artist. If you want to replace entirely, use 'set'
+                connect: { id: String(artistId) }
             }
-        })
-        return res.status(200).json({message:"All albums fetched successfully" , albums})
-    } catch (error) {
-        console.error("Error fetching all albums:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
-export const getAlbumDetails = async(req:AuthRequest , res:Response) =>{
-    try {
-        const {id} = req.params
-        if(!id){
-            return res.status(400).json({message:"Album ID is required"})
         }
-        const album = await prisma.album.findUnique({
-            where:{
-                id:String(id)
-            },
-            include: {
-                songs: true,
-                artists: true
-            }
-        })
-        if(!album){
-            return res.status(404).json({message:"Album not found"})
-        }
+    });
 
-        return res.status(200).json({message:"Album details fetched successfully" , album})
-    } catch (error) {
-        console.error("Error fetching album details:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
-export const deleteAlbum = async(req:AuthRequest , res:Response) =>{
-    try {
-        const {id} = req.params
-        if(!id){
-            return res.status(400).json({message:"Album ID is required"})
-        }
-
-        const findAlbum = await prisma.album.findUnique({
-            where: {
-                id: String(id)
-            }
-        });
-        if (!findAlbum) {
-            return res.status(404).json({ message: "Album not found" });
-        }
-
-        const album = await prisma.album.delete({
-            where:{
-                id:String(id)
-            }
-        })
-
-        return res.status(200).json({message:"Album deleted successfully" , album})
-    } catch (error) {
-        console.error("Error deleting album:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
-export const updateAlbum = async(req:AuthRequest , res:Response) =>{
-    try {
-        const {id} = req.params
-        if(!id){
-            return res.status(400).json({message:"Album ID is required"})
-        }
-
-        const {artistId , imageUrl , title , releaseYear } = req.body
-        if(!artistId || !imageUrl || !title || !releaseYear ){
-            return res.status(400).json({message:"All fields (including artistId) are required"})
-        }
-
-        const findAlbum = await prisma.album.findUnique({
-            where:{
-                id:String(id)
-            }
-        })
-        if(!findAlbum){
-            return res.status(404).json({message:"Album not found"})
-        }
-
-        const parsedReleaseYear = parseInt(releaseYear, 10);
-        if (isNaN(parsedReleaseYear)) {
-            return res.status(400).json({ message: "Release year must be a valid number" });
-        }
-
-        const artistExists = await prisma.artist.findFirst({ 
-            where: { 
-                id: String(artistId),
-                isDeleted: false
-            } 
-        });
-        if (!artistExists) {
-            return res.status(404).json({ message: "Artist not found" });
-        }
-
-        const album = await prisma.album.update({
-            where:{
-                id:String(id)
-            },
-            data:{
-                title,
-                imageUrl,
-                releaseYear: parsedReleaseYear,
-                artists: {
-                    // This links the new artist. If you want to replace entirely, use 'set'
-                    connect: { id: String(artistId) }
-                }
-            }
-        })
-
-        return res.status(200).json({message:"Album updated successfully" , album})
-    } catch (error) {
-        console.error("Error updating album:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
+    return res.status(200).json({ message: "Album updated successfully", album });
+});

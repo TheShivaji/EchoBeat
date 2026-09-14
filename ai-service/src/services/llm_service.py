@@ -1,21 +1,26 @@
-import os
-import asyncio
-from dotenv import load_dotenv
-from typing import Any
+"""
+llm_service.py — EchoBeats AI Service
 
+Is file mein 4 kaam hote hain:
+  1. LLM (Gemini) setup
+  2. Echo Agent tools (user ki library se data padhte hain)
+  3. LLM chains (playlist, lyrics, music search)
+  4. chatbot_assistant() — main agent function
+"""
+
+import os
+from dotenv import load_dotenv
+
+# ── Schemas ───────────────────────────────────────────────────────────────────
 from ..schemas.recommendation import RecommendationIntent, PlaylistGenerating
 from ..schemas.lyrics import LyricsRequest, LyricsResponse
 from ..schemas.assistant import (
-    ChatRequest,
-    ChatResponse,
-    GetLikedSongsArgs,
-    SearchSongsArgs,
-    RecentPlayedArgs,
-    GetPlaylistArgs,
-    GetArtistArgs,
-    CreatePlaylistArgs,
-    UserContext,
+    ChatRequest, ChatResponse, PendingPlaylist, UserContext,
+    SearchSongsArgs, RecentPlayedArgs, GetLikedSongsArgs,
+    GetPlaylistArgs, GetArtistArgs, CreatePlaylistArgs,
 )
+
+# ── Prompts ───────────────────────────────────────────────────────────────────
 from .prompt import (
     music_request_prompt,
     playlist_generating_prompt,
@@ -23,18 +28,22 @@ from .prompt import (
     chatbot_assistant_prompt,
 )
 
+# ── LangChain ─────────────────────────────────────────────────────────────────
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
 from langchain.agents import create_agent
 
 
+# =============================================================================
+# 1. LLM Setup
+# =============================================================================
+
 load_dotenv()
 
 api_key = os.getenv("GOOGLE_API_KEY")
-
 if not api_key:
-    raise ValueError("GOOGLE_API_KEY is not set")
+    raise ValueError("GOOGLE_API_KEY is not set in .env")
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-3.5-flash-lite",
@@ -42,25 +51,31 @@ llm = ChatGoogleGenerativeAI(
 )
 
 
-# ─── Tool Builder: reads from pre-fetched user_context ────────────────────────
+# =============================================================================
+# 2. Echo Agent Tools
+#    Node.js pehle se user ka data (liked songs, playlists, recent played)
+#    fetch karke bhejta hai. Yeh tools usi data se padhte hain.
+# =============================================================================
 
-def build_tools(user_context: UserContext):
+def build_tools(user_context: UserContext, pending: list):
     """
-    Build LangChain tools that read directly from the user_context
-    pre-fetched by Node.js (no HTTP calls to backend needed).
+    6 tools banata hai jo user_context se data padhte hain.
+    `pending` list mein create_playlist apna data store karta hai
+    taaki Node.js baad mein actual playlist bana sake.
     """
 
-    # Merge liked_songs + recent_played (deduped by title+artist) for broader search
-    def _all_songs() -> list:
+    # Liked + Recently Played songs — dono ko merge karo (duplicates hata ke)
+    def _all_songs():
         seen = set()
-        merged = []
+        result = []
         for s in list(user_context.liked_songs) + list(user_context.recent_played):
             key = ((s.title or "").lower(), (s.artist or "").lower())
             if key not in seen:
                 seen.add(key)
-                merged.append(s)
-        return merged
+                result.append(s)
+        return result
 
+    # ── Tool 1: Song Search ───────────────────────────────────────────────────
     @tool(args_schema=SearchSongsArgs)
     async def search_songs(
         query: str | None = None,
@@ -68,176 +83,156 @@ def build_tools(user_context: UserContext):
         category: str | None = None,
         limit: int = 10,
     ) -> str:
-        """Search songs from the user's full library (liked + recently played) by query, artist, or mood/category."""
-        q_lower = (query or artist_name or category or "").lower()
-        all_songs = _all_songs()
-        results = [
-            s for s in all_songs
-            if q_lower in (s.title or "").lower()
-            or q_lower in (s.artist or "").lower()
-            or q_lower in (s.category or "").lower()
+        """Search songs from user's library (liked + recently played) by name, artist, or mood."""
+        q = (query or artist_name or category or "").lower()
+        matches = [
+            s for s in _all_songs()
+            if q in (s.title or "").lower()
+            or q in (s.artist or "").lower()
+            or q in (s.category or "").lower()
         ][:limit]
-        if not results:
-            return f"Aapki library mein '{q_lower}' se koi matching song nahi mila."
-        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in results)
+        if not matches:
+            return f"'{q}' se koi song nahi mila aapki library mein."
+        return "\n".join(f"• {s.title} — {s.artist}" for s in matches)
 
+    # ── Tool 2: Recently Played ───────────────────────────────────────────────
     @tool(args_schema=RecentPlayedArgs)
     async def get_recent_played(limit: int = 10) -> str:
-        """Fetch the user's recently played songs from their listening history."""
+        """Get the user's recently played songs."""
         songs = user_context.recent_played[:limit]
         if not songs:
-            return "Koi recently played songs nahi mile. Pehle kuch gaane suniye!"
-        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in songs)
+            return "Koi recently played songs nahi mili. Pehle kuch suniye!"
+        return "\n".join(f"• {s.title} — {s.artist}" for s in songs)
 
+    # ── Tool 3: Liked Songs ───────────────────────────────────────────────────
     @tool(args_schema=GetLikedSongsArgs)
     async def get_liked_songs(
         artist_name: str | None = None,
         limit: int = 20,
         page: int = 1,
     ) -> str:
-        """Fetch the user's liked/favorited songs, optionally filtered by artist name."""
+        """Get user's liked songs, optionally filtered by artist name."""
         songs = user_context.liked_songs
         if artist_name:
-            a_lower = artist_name.lower()
-            songs = [s for s in songs if a_lower in (s.artist or "").lower()]
-        start = (page - 1) * limit
-        songs = songs[start: start + limit]
+            songs = [s for s in songs if artist_name.lower() in (s.artist or "").lower()]
+        songs = songs[(page - 1) * limit : page * limit]
         if not songs:
-            msg = f"{artist_name} ke" if artist_name else "Koi"
-            return f"{msg} liked songs nahi mile."
-        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in songs)
+            return f"{'Koi' if not artist_name else artist_name + ' ke'} liked songs nahi mile."
+        return "\n".join(f"• {s.title} — {s.artist}" for s in songs)
 
+    # ── Tool 4: User Playlists ────────────────────────────────────────────────
     @tool(args_schema=GetPlaylistArgs)
-    async def get_playlist(
-        playlist_name: str | None = None,
-        limit: int = 10,
-    ) -> str:
-        """Fetch the user's playlists, optionally filtering by playlist name."""
+    async def get_playlist(playlist_name: str | None = None, limit: int = 10) -> str:
+        """Get user's playlists, optionally filtered by name."""
         playlists = user_context.playlists
         if playlist_name:
-            p_lower = playlist_name.lower()
-            playlists = [p for p in playlists if p_lower in (p.name or "").lower()]
+            playlists = [p for p in playlists if playlist_name.lower() in (p.name or "").lower()]
         playlists = playlists[:limit]
         if not playlists:
             return "Koi playlist nahi mili."
-        return "\n".join(f"• {p.name or 'Unknown'}" for p in playlists)
+        return "\n".join(f"• {p.name}" for p in playlists)
 
+    # ── Tool 5: Artist Songs ──────────────────────────────────────────────────
     @tool(args_schema=GetArtistArgs)
     async def get_artist(artist_name: str, limit: int = 10) -> str:
-        """Fetch songs for a specific artist from the user's full library (liked + recently played)."""
-        a_lower = artist_name.lower()
-        all_songs = _all_songs()
+        """Get songs by a specific artist from user's full library."""
         songs = [
-            s for s in all_songs
-            if a_lower in (s.artist or "").lower()
+            s for s in _all_songs()
+            if artist_name.lower() in (s.artist or "").lower()
         ][:limit]
         if not songs:
-            return (
-                f"{artist_name} ke koi gaane aapki library (liked ya recently played) mein nahi mile.\n"
-                f"Unke gaane search karke suniye, phir library mein automatically aayenge!"
-            )
-        return "\n".join(f"• {s.title or 'Unknown'} — {s.artist or 'Unknown'}" for s in songs)
+            return f"{artist_name} ke gaane library mein nahi mile. Unhe sunke library add karein!"
+        return "\n".join(f"• {s.title} — {s.artist}" for s in songs)
 
+    # ── Tool 6: Create Playlist ───────────────────────────────────────────────
     @tool(args_schema=CreatePlaylistArgs)
-    async def create_playlist(
-        playlist_name: str,
-        description: str | None = None,
-    ) -> str:
-        """Suggest creating a new playlist with a name and optional description."""
-        desc = description or f"AI generated playlist: {playlist_name}"
-        return (
-            f"✅ Playlist '{playlist_name}' create karne ke liye ready hai!\n"
-            f"Description: {desc}\n"
-            f"Note: App mein 'Create Playlist' button se confirm karein."
-        )
+    async def create_playlist(playlist_name: str, description: str | None = None) -> str:
+        """
+        Create a new playlist. Just tell the name and what kind of songs you want.
+        Node.js will search the full database and create it automatically.
+        """
+        # Sirf name aur description store karo — Node.js baaki sab karega
+        pending.append(PendingPlaylist(
+            name=playlist_name,
+            description=description or playlist_name,
+            song_ids=[],  # Node.js khud songs dhundega
+        ))
+        return f"✅ Playlist '{playlist_name}' create ho rahi hai! Node.js songs dhundh ke add karega."
 
-    return [
-        search_songs,
-        get_recent_played,
-        get_liked_songs,
-        get_playlist,
-        get_artist,
-        create_playlist,
-    ]
+    return [search_songs, get_recent_played, get_liked_songs, get_playlist, get_artist, create_playlist]
 
 
-# ─── Existing LLM Chains ──────────────────────────────────────────────────────
+# =============================================================================
+# 3. LLM Chains (Music Search, Playlist Generator, Lyrics)
+# =============================================================================
 
-async def understand_music_request(message):
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", music_request_prompt),
-        ("human", "{message}"),
-    ])
-    structured_llm = llm.with_structured_output(RecommendationIntent, method="json_mode")
-    chain = prompt | structured_llm
-    result = await chain.ainvoke({"message": message})
-    print(result)
-    return result
+async def understand_music_request(message: str):
+    """User ke message se artist/category/limit samjho (for search feature)."""
+    chain = (
+        ChatPromptTemplate.from_messages([("system", music_request_prompt), ("human", "{message}")])
+        | llm.with_structured_output(RecommendationIntent, method="json_mode")
+    )
+    return await chain.ainvoke({"message": message})
 
 
 async def playlist_genrating(message: str):
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", playlist_generating_prompt),
-        ("human", "{message}"),
-    ])
-    structured_llm = llm.with_structured_output(PlaylistGenerating, method="json_mode")
-    chain = prompt | structured_llm
-    result = await chain.ainvoke({"message": message})
-    print(result)
-    return result
+    """User ke message se playlist ke liye details nikalo (name, artist, category)."""
+    chain = (
+        ChatPromptTemplate.from_messages([("system", playlist_generating_prompt), ("human", "{message}")])
+        | llm.with_structured_output(PlaylistGenerating, method="json_mode")
+    )
+    return await chain.ainvoke({"message": message})
 
 
 async def process_lyrics_request(req: LyricsRequest) -> LyricsResponse:
-    human_prompt = f"""Song Title: {req.title}
-Artist: {req.artist or 'Unknown Artist'}
-Requested Action: {req.action or 'explain'}
-Target Language: {req.target_language or 'Hindi'}
-User Prompt: {req.prompt or 'Explain the meaning of this song'}
-
-Provided Lyrics:
----
-{req.lyrics}
----"""
-
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", lyrics_system_prompt),
-        ("human", human_prompt),
-    ])
-    structured_llm = llm.with_structured_output(LyricsResponse, method="json_mode")
-    chain = prompt | structured_llm
-    result = await chain.ainvoke({})
-    print("Lyrics AI result:", result)
-    return result
+    """Song ke lyrics ko translate/explain/mood analyze karo."""
+    human_prompt = (
+        f"Song Title: {req.title}\n"
+        f"Artist: {req.artist or 'Unknown Artist'}\n"
+        f"Action: {req.action or 'explain'}\n"
+        f"Language: {req.target_language or 'Hindi'}\n"
+        f"User Request: {req.prompt or 'Explain the meaning'}\n\n"
+        f"Lyrics:\n---\n{req.lyrics}\n---"
+    )
+    chain = (
+        ChatPromptTemplate.from_messages([("system", lyrics_system_prompt), ("human", human_prompt)])
+        | llm.with_structured_output(LyricsResponse, method="json_mode")
+    )
+    return await chain.ainvoke({})
 
 
-# ─── Echo Agent ────────────────────────────────────────────────────────────────
+# =============================================================================
+# 4. Echo Agent (Main Chatbot Function)
+# =============================================================================
 
 async def chatbot_assistant(req: ChatRequest) -> ChatResponse:
     """
-    Run the EchoBeats ReAct agent.
-    Tools read from user_context (pre-fetched by Node.js) — no backend HTTP calls needed.
+    EchoBeats AI Agent — user ki music requests handle karta hai.
+
+    Flow:
+      1. user_context (liked songs, playlists, recent played) se tools banao
+      2. Agent ko user ka message do
+      3. Agent tools call karta hai aur reply deta hai
+      4. Agar playlist banani ho, Node.js ko pending_playlist mein bhejo
     """
     ctx = req.user_context or UserContext()
-    tools = build_tools(ctx)
+    pending: list = []
+    tools = build_tools(ctx, pending)
 
-    agent = create_agent(
-        model=llm,
-        tools=tools,
-        system_prompt=chatbot_assistant_prompt,
+    agent = create_agent(model=llm, tools=tools, system_prompt=chatbot_assistant_prompt)
+
+    result = await agent.ainvoke({"messages": [{"role": "user", "content": req.message}]})
+
+    # Final reply extract karo (string ya list dono handle karo)
+    final = result["messages"][-1]
+    content = final.content if hasattr(final, "content") else str(final)
+    reply = (
+        " ".join(c.get("text", "") if isinstance(c, dict) else str(c) for c in content)
+        if isinstance(content, list)
+        else str(content)
     )
 
-    messages = [{"role": "user", "content": req.message}]
-    result = await agent.ainvoke({"messages": messages})
+    # Windows console pe emoji crash hoti hai — safe print
+    print("Echo Agent:", reply.encode("ascii", "backslashreplace").decode("ascii"))
 
-    final_message = result["messages"][-1]
-    content = final_message.content if hasattr(final_message, "content") else str(final_message)
-    if isinstance(content, list):
-        reply = " ".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
-    else:
-        reply = str(content)
-
-    # Safe print for Windows consoles (avoids UnicodeEncodeError with emojis)
-    safe_reply = reply.encode('ascii', 'backslashreplace').decode('ascii')
-    print("Echo Agent reply:", safe_reply)
-
-    return ChatResponse(reply=reply)
+    return ChatResponse(reply=reply, pending_playlist=pending[-1] if pending else None)

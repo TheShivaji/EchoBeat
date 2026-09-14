@@ -1,5 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import { prisma } from "../config/db.js"
+import AppError from "../utils/AppError.js"
+import asyncHandler from "../utils/asyncHandler.js"
 
 export interface AuthRequest extends Request {
     user?: any;
@@ -12,20 +14,16 @@ export const authUser = (req: AuthRequest, res: Response, next: NextFunction) =>
     return res.status(401).json({ message: "Unauthorized: No session provided" });
 }
 
-export const userAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-        // DB se fresh user fetch karo taaki real-time role check ho
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.id }
-        })
+export const userAdmin = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user?.id) throw new AppError("Unauthorized", 401);
 
-        if (!user || user.role !== "ADMIN") {
-            return res.status(403).json({ message: "Unauthorized: Admin access required" })
-        }
+    
+    const user = await prisma.user.findUnique({
+        where: { id: req.user.id }
+    });
 
-        next()
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({message:"Internal server error"})
-    }
-}
+    if (!user || user.role !== "ADMIN") throw new AppError("Unauthorized: Admin access required", 403);
+
+    next();
+});
+

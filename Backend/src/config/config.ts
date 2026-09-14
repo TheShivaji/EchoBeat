@@ -15,7 +15,9 @@ if(!process.env.IMAGEKIT_PUBLIC_KEY || !process.env.IMAGEKIT_PRIVATE_KEY || !pro
 if(!process.env.AI_SERVICE_URL){
     throw new Error("AI service URL is not defined")
 }
-
+if(!process.env.REDIS_URL){
+    throw new Error("Redis URL is not defined")
+}
 export default {
     port: process.env.PORT || 5000,
     databaseUrl: process.env.DATABASE_URL!,
@@ -25,4 +27,5 @@ export default {
     imagekitPrivateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
     imagekitUrlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT!,
     aiServiceUrl: process.env.AI_SERVICE_URL!,
+    redisUrl:process.env.REDIS_URL!
 }

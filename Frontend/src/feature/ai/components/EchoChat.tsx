@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Bot, X, Send, Trash2, Loader2, Sparkles } from "lucide-react";
 import { useChat } from "../hook/useChat";
+import ReactMarkdown from "react-markdown";
 
 // ─── Quick suggestion chips ───────────────────────────────────────────────────
 const SUGGESTIONS = [
@@ -22,13 +23,13 @@ const Bubble = ({ role, content }: { role: "user" | "assistant"; content: string
             )}
             <div
                 className={[
-                    "max-w-[78%] px-3 py-2 rounded-2xl text-[13px] leading-[1.55] whitespace-pre-wrap break-words",
+                    "max-w-[78%] px-3 py-2 rounded-2xl text-[13px] leading-[1.55] whitespace-pre-wrap break-words [&>p]:mb-0 [&_strong]:font-bold [&_em]:italic",
                     isUser
                         ? "bg-[#2a2a2a] text-white rounded-br-sm"
                         : "bg-[#1e1e1e] text-[#d8d8d8] rounded-bl-sm border border-[#2a2a2a]",
                 ].join(" ")}
             >
-                {content}
+                <ReactMarkdown>{content}</ReactMarkdown>
             </div>
         </div>
     );

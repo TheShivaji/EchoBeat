@@ -112,6 +112,13 @@ class UserContext(BaseModel):
 
 # ─── API Request / Response Schemas ───────────────────────────────────────────
 
+class PendingPlaylist(BaseModel):
+    """Playlist to be created by Node.js after agent response."""
+    name: str
+    description: Optional[str] = None
+    song_ids: List[str] = Field(default_factory=list)
+
+
 class ChatRequest(BaseModel):
     """Incoming request body for the /ai/assistant endpoint."""
 
@@ -130,3 +137,7 @@ class ChatResponse(BaseModel):
     """Final response returned by the /ai/assistant endpoint."""
 
     reply: str = Field(..., description="The agent's final natural-language answer.")
+    pending_playlist: Optional[PendingPlaylist] = Field(
+        None,
+        description="If the agent decided to create a playlist, contains the data to create it.",
+    )
