@@ -2,17 +2,19 @@
 
 # 🎧 Echo Beat
 
-### A Modern, Full-Stack Audio Streaming Platform
+### A Full-Stack Audio Streaming Platform with an AI Music Agent
 
-<p><i>Type-safe. Relational. Built for scale.</i></p>
+<p><i>Type-safe. Relational. Multi-service. AI-native.</i></p>
 
 <p>
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
   <img src="https://img.shields.io/badge/Express_5-404D59?style=for-the-badge&logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=prisma&logoColor=white" />
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
 </p>
 
 <p>
@@ -28,12 +30,14 @@
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/typescript/typescript-original.svg" width="45" title="TypeScript" />&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nodejs/nodejs-original.svg" width="45" title="Node.js" />&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/express/express-original.svg" width="45" title="Express" />&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" width="45" title="Python" />&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original.svg" width="45" title="PostgreSQL" />&nbsp;&nbsp;
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/tailwindcss/tailwindcss-original.svg" width="45" title="Tailwind" />
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original.svg" width="45" title="Redis" />&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" width="45" title="Docker" />
 
 <br/><br/>
 
-[Features](#-core-features) • [Architecture](#️-architecture-overview) • [Tech Stack](#-tech-stack) • [Setup](#-installation--setup) • [Engineering Notes](#-engineering-highlights--decisions)
+[Features](#-core-features) • [AI Agent](#-ai-music-agent) • [Architecture](#️-architecture-overview) • [Tech Stack](#-tech-stack) • [Setup](#-installation--setup) • [Engineering Notes](#-engineering-highlights--decisions)
 
 </div>
 
@@ -41,9 +45,9 @@
 
 ## 📖 Overview
 
-**Echo Beat** is a highly scalable, premium web application architected to deliver a seamless audio streaming experience. Built from the ground up on a modern MERN-inspired stack — swapping MongoDB for a **strictly typed PostgreSQL** layer — it's a showcase of senior-level engineering, clean folder architecture, and performant data delivery.
+**Echo Beat** is a full-stack, production-shaped audio streaming platform split into three independently deployable services — a **React frontend**, a **type-safe Node/Express API**, and a **Python AI microservice** — all orchestrated with **Docker Compose**.
 
-No starter-kit clutter. Just a beautifully organized, end-to-end **type-safe** implementation of a genuinely complex domain: music streaming.
+Beyond the standard streaming-app fundamentals (auth, playlists, uploads, search), Echo Beat ships a genuine **AI music agent**: natural-language recommendations, an AI playlist generator, a lyrics translator/explainer with hallucination guardrails, and a conversational assistant with markdown-aware chat and its own context-aware tools.
 
 ---
 
@@ -53,34 +57,26 @@ No starter-kit clutter. Just a beautifully organized, end-to-end **type-safe** i
 <tr>
 <td width="50%" valign="top">
 
-### 🔐 Robust Authentication
-Secure JWT-based auth flow with HTTP-only cookies and Bcrypt password hashing.
+### 🔐 Full Auth Stack
+JWT (HTTP-only cookies) + Bcrypt, plus **Google OAuth** via Passport — session and token-based flows both supported.
 
 ### 🗄️ Relational Data Mastery
-Complex Many-to-Many & One-to-Many relationships via Prisma — albums with multiple artists, users with liked songs, and more.
+Many-to-Many & One-to-Many schemas via Prisma — albums with multiple artists, liked songs, playlists, play history.
+
+### 🔎 Full Search & Discovery
+Dedicated search service across songs, artists, albums, and playlists, plus paginated home feeds, carousels, and "new releases."
 
 </td>
 <td width="50%" valign="top">
 
-### ☁️ Media Management
-Direct-to-cloud uploads via Multer + ImageKit for audio assets and high-res artwork.
+### ☁️ Media Pipeline
+Multer-based uploads with audio metadata extraction, routed to ImageKit/Cloudinary for CDN-backed storage.
 
 ### 🎵 Playlist & Library Ecosystem
-Full CRUD for user playlists, liked songs, and curated albums.
+Full CRUD for playlists, liked songs, curated albums, recently-played history with pagination.
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### ⚙️ Race Condition Prevention
-Database-level uniqueness constraints for atomic operations on high-traffic endpoints.
-
-</td>
-<td width="50%" valign="top">
-
-### 🚀 Blazing Fast SPA
-Vite-powered React 19 frontend with instant HMR and a tiny production bundle.
+### 🛡️ Production Hardening
+Helmet, dual-layer rate limiting (in-memory + **Redis-backed**), structured logging via **Pino**, and centralized error handling.
 
 </td>
 </tr>
@@ -88,22 +84,49 @@ Vite-powered React 19 frontend with instant HMR and a tiny production bundle.
 
 ---
 
+## 🤖 AI Music Agent
+
+Echo Beat's AI layer runs as its **own FastAPI microservice**, orchestrated with LangChain and Google's Gemini models, and is called by the backend over an internal HTTP boundary (not bolted onto the main API).
+
+| Capability | What it does |
+|---|---|
+| **Natural-language recommendations** | `/ai/understand` — turns a free-text mood/request into structured music queries against the catalog |
+| **AI Playlist Generator** | `/ai/playlist` — builds a playlist from a natural-language prompt, resolved against real artist/album relations |
+| **Lyrics Translator & Explainer** | `/ai/lyrics` — translates and explains lyrics with **zero-hallucination guardrails** and an image fallback path |
+| **Echo Agent (chatbot)** | `/ai/assistant` — a context-aware conversational agent with music-specific tools and **Markdown-rendered** chat on the frontend |
+
+The backend exposes a `query-router.service.ts` that decides how a request should be routed between the catalog and the AI service, keeping the AI microservice stateless and swappable.
+
+---
+
 ## 🏗️ Architecture Overview
 
 ```
-┌─────────────────────────────┐        ┌──────────────────────────────┐
-│           FRONTEND          │        │            BACKEND           │
-│                             │        │                              │
-│   React 19 + Vite           │  REST  │   Express 5 (Node.js)        │
-│   Redux Toolkit (state)     │◄──────►│   Prisma ORM (type-safe)     │
-│   Tailwind CSS v4           │  JWT   │   PostgreSQL                 │
-│   React Router DOM v6       │        │   Multer → ImageKit (CDN)    │
-└─────────────────────────────┘        └──────────────────────────────┘
+┌───────────────────┐      REST/JWT      ┌──────────────────────┐      HTTP       ┌────────────────────┐
+│      FRONTEND      │ ◄───────────────► │       BACKEND         │ ◄─────────────► │     AI-SERVICE      │
+│  React 19 + Vite    │                   │  Express 5 (Node.js)  │                 │  FastAPI (Python)   │
+│  Redux Toolkit       │                  │  Prisma ORM            │                │  LangChain + Gemini  │
+│  Tailwind CSS v4      │                 │  Passport (JWT+OAuth)   │               └────────────────────┘
+│  react-markdown        │                │  Pino logging            │
+└───────────────────┘                     │  Helmet + rate-limit      │
+                                            └──────────┬───────────┘
+                                                       │
+                                      ┌────────────────┼────────────────┐
+                                      ▼                                 ▼
+                              ┌──────────────┐                 ┌───────────────┐
+                              │  PostgreSQL   │                 │     Redis      │
+                              │ (via Prisma)  │                 │ (rate-limit +  │
+                              └──────────────┘                 │   caching)     │
+                                                                └───────────────┘
 ```
 
-**Backend** — a RESTful API on Express 5 & Node.js, with PostgreSQL accessed exclusively through Prisma for type-safe queries, custom JWT auth middleware, a stateless media pipeline streaming straight to ImageKit, and centralized error handling (including Prisma `P2002` race-condition catches).
+All three services, plus Postgres and Redis, are wired together in a single `docker-compose.yml` — `docker compose up` brings up the entire stack.
 
-**Frontend** — a single-page app powered by React 19 + Vite for instant HMR, Redux Toolkit for predictable state, Tailwind CSS v4 for a utility-first UI, and React Router DOM v6 for client-side navigation.
+**Backend** — RESTful API on Express 5, Prisma over PostgreSQL for type-safe queries, JWT + Google OAuth auth, a media pipeline (Multer → ImageKit/Cloudinary) with audio-metadata parsing, dual rate limiting (local + Redis-backed via `rate-limit-redis`), and structured request logging via `pino-http`.
+
+**AI-service** — an isolated FastAPI app so the AI stack (LangChain, Gemini) can be developed, scaled, and rate-limited independently of the core API.
+
+**Frontend** — React 19 + Vite SPA, Redux Toolkit for player/auth/queue state, Tailwind CSS v4, Framer Motion for UI motion, and `react-markdown` to render the AI assistant's replies.
 
 ---
 
@@ -113,6 +136,7 @@ Vite-powered React 19 frontend with instant HMR and a tiny production bundle.
 <tr>
 <th align="left">🎨 Frontend</th>
 <th align="left">⚙️ Backend</th>
+<th align="left">🤖 AI Service</th>
 </tr>
 <tr>
 <td valign="top">
@@ -121,19 +145,35 @@ Vite-powered React 19 frontend with instant HMR and a tiny production bundle.
 - Vite 8
 - Tailwind CSS v4
 - Redux Toolkit
+- React Router DOM v6
+- Framer Motion
+- react-markdown
 - Axios
 - TypeScript
 
 </td>
 <td valign="top">
 
-- Node.js
-- Express 5
+- Node.js + Express 5
 - Prisma ORM
 - PostgreSQL
-- ImageKit (CDN & storage)
-- JWT + BcryptJS
+- Redis
+- Passport (JWT + Google OAuth)
+- Helmet + express-rate-limit
+- Pino / pino-http
+- ImageKit + Cloudinary
+- Multer + music-metadata
 - TypeScript
+
+</td>
+<td valign="top">
+
+- Python 3.12
+- FastAPI + Uvicorn
+- LangChain
+- langchain-google-genai (Gemini)
+- Pydantic
+- uv (dependency management)
 
 </td>
 </tr>
@@ -144,69 +184,94 @@ Vite-powered React 19 frontend with instant HMR and a tiny production bundle.
 ## 📂 Folder Structure
 
 ```
-Echo-Beat/
+EchoBeat/
 ├── Backend/
-│   ├── prisma/             # Database schemas & migrations
+│   ├── prisma/                 # Database schema & migrations
 │   ├── src/
-│   │   ├── config/         # Environment & DB configurations
-│   │   ├── controllers/    # Route business logic (album, artist, playlist, song)
-│   │   ├── middleware/     # JWT auth guards
-│   │   ├── routes/         # Express endpoint definitions
-│   │   └── utils/          # ImageKit and Multer configurations
-│   └── package.json
-└── Frontend/
-    ├── src/                # React application root
-    ├── package.json
-    └── vite.config.ts
+│   │   ├── config/              # DB, Redis, Passport, env config
+│   │   ├── controllers/         # album, artist, auth, history, home, playlist, search, song, ai
+│   │   ├── middleware/          # Auth guards
+│   │   ├── routes/               # Express endpoint definitions (mirrors controllers)
+│   │   ├── service/               # ai.service, home.service, query-router.service, user.service
+│   │   └── utils/                  # Logger, AppError, async handler, audio metadata, Multer
+│   └── Dockerfile
+├── Frontend/
+│   ├── src/
+│   │   ├── app/                    # Store & app-level setup
+│   │   ├── feature/                # ai, album, artists, auth, home, players, playlist, search, song, upload
+│   │   └── components/shared/      # Shared UI
+│   └── Dockerfile
+├── ai-service/
+│   ├── src/
+│   │   ├── main.py                 # /ai/understand, /ai/playlist, /ai/lyrics, /ai/assistant
+│   │   ├── schemas/                 # assistant, lyrics, recommendation
+│   │   └── services/                # llm_service, prompt
+│   └── Dockerfile
+└── docker-compose.yml               # Frontend + Backend + AI-service + Postgres + Redis
 ```
 
 ---
 
 ## 🧠 Engineering Highlights & Decisions
 
-> **Why PostgreSQL over MongoDB?**
-> Music ecosystems are deeply relational (Artists → Songs → Albums → Playlists). A relational DB enforces data integrity — `onDelete: Cascade` instantly sweeps orphan records when an artist is deleted.
+> **Why a separate AI microservice instead of an in-process call?**
+> Keeps LangChain/Gemini dependencies, scaling, and rate limits isolated from the core API — the AI service can be redeployed or swapped for a different model provider without touching the Express app.
 
-> **Explicit Join Tables**
-> `LikedSong` is an explicit Many-to-Many join table (not a simple array), so the system can track *when* a user liked a song via `createdAt`.
+> **Why PostgreSQL over MongoDB?**
+> Music ecosystems are deeply relational (Artists → Songs → Albums → Playlists). A relational DB enforces integrity — `onDelete: Cascade` sweeps orphan records automatically.
+
+> **Dual-layer rate limiting**
+> `express-rate-limit` handles per-instance limits; `rate-limit-redis` backs it with a shared store so limits hold correctly across multiple backend replicas.
+
+> **Zero-hallucination guardrails on the lyrics feature**
+> The lyrics translator/explainer is constrained to avoid inventing lyrics it isn't confident about, with an image-based fallback when text extraction isn't reliable.
 
 > **Redux Toolkit over Context API**
-> A music player needs deeply nested state — current track, play queue, volume, auth status. Redux Toolkit avoids the re-render storms Context API would trigger here.
-
-> **Vite + Tailwind v4**
-> Prioritizing developer experience and tiny production bundle sizes.
+> A music player needs deeply nested, frequently-updating state — current track, queue, volume, auth — which Context API would re-render poorly.
 
 ---
 
 ## 🚀 Installation & Setup
 
-### Prerequisites
-- Node.js v18+
-- PostgreSQL (local or cloud connection string)
-- An ImageKit account (for media uploads)
+### Option A — Docker (recommended)
 
-### 1️⃣ Clone the repository
+Brings up Frontend, Backend, AI-service, PostgreSQL, and Redis together.
 
 ```bash
 git clone https://github.com/TheShivaji/EchoBeat.git
 cd EchoBeat
+docker compose up --build
 ```
 
-### 2️⃣ Backend setup
+- Frontend → `http://localhost:5173`
+- Backend → `http://localhost:5000`
+- AI-service → `http://localhost:8000`
+
+### Option B — Manual setup
+
+**Prerequisites:** Node.js v18+, Python 3.12+ with `uv`, PostgreSQL, Redis, an ImageKit account, and a Google Gemini API key.
+
+**1. Backend**
 
 ```bash
 cd Backend
 npm install
 ```
 
-Create a `.env` file:
+Create `Backend/.env`:
 
 ```env
+PORT=5000
 DATABASE_URL="postgresql://user:password@localhost:5432/echobeat"
 JWT_SECRET="your_secret_key"
-IMAGEKIT_URL_ENDPOINT="..."
+JWT_COOKIE_EXPIRE=15d
+REDIS_URL="redis://localhost:6379"
+AI_SERVICE_URL="http://localhost:8000"
 IMAGEKIT_PUBLIC_KEY="..."
 IMAGEKIT_PRIVATE_KEY="..."
+IMAGEKIT_URL_ENDPOINT="..."
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
 ```
 
 ```bash
@@ -215,9 +280,20 @@ npx prisma generate
 npm run dev
 ```
 
-### 3️⃣ Frontend setup
+**2. AI service**
 
-In a new terminal:
+```bash
+cd ai-service
+uv sync
+```
+
+Create `ai-service/.env` with your Gemini/LLM credentials, then:
+
+```bash
+uv run uvicorn src.main:app --reload --port 8000
+```
+
+**3. Frontend**
 
 ```bash
 cd Frontend
@@ -238,7 +314,8 @@ Licensed under the **ISC License**.
 **TheShivaji**
 
 <a href="https://github.com/TheShivaji"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" /></a>
+<a href="https://www.linkedin.com/in/shivaji-jagdale-48817330b"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
 
-*Built with precision, typed to perfection.*
+*Built feature by feature, service by service.*
 
 </div>
