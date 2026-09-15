@@ -5,6 +5,7 @@ import { imagekit } from "../utils/multer.js";
 import { extractEmbeddedCover } from "../utils/audioMetadata.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
+import { deleteCacheByPattern, deleteHomeCache } from "../utils/cache.js";
 
 
 async function addToAlbum(albumID: string, songID: string, action: string, res: Response) {
@@ -33,6 +34,9 @@ async function addToAlbum(albumID: string, songID: string, action: string, res: 
                 : { disconnect: { id: songID } }
         }
     });
+
+    await deleteCacheByPattern("search:songs:*");
+    await deleteHomeCache();
 
     return res.status(200).json({
         message: `Song ${action === "add" ? "added to" : "removed from"} album successfully`,
@@ -123,6 +127,8 @@ export const uploadSong = asyncHandler(async (req: AuthRequest, res: Response) =
             ...(albumID ? { album: { connect: { id: String(albumID) } } } : {}),
         },
     });
+    await deleteCacheByPattern("search:songs:*");
+    await deleteHomeCache();
 
     return res.status(201).json({ success: true, message: "Song uploaded successfully", song });
 });
@@ -139,6 +145,10 @@ export const deleteSong = asyncHandler(async (req: AuthRequest, res: Response) =
             data: { songs: { delete: { id: song.id } } }
         })
     }
+
+    await deleteCacheByPattern("search:songs:*");
+    await deleteCacheByPattern("home:recently_played:*");
+    await deleteHomeCache();
 
     return res.status(200).json({ message: "Song deleted successfully", song });
 });
@@ -274,4 +284,4 @@ export const getAllLikedSongs = asyncHandler(async (req: AuthRequest, res: Respo
     if (!likedSongs.length) throw new AppError("No liked songs found", 404);
 
     return res.status(200).json({ message: "Liked songs fetched successfully", likedSongs });
-});
+});

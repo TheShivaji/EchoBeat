@@ -28,11 +28,9 @@ services:
       JWT_SECRET: MUbA2zhI0HeFQ4FGzGoeeoagilevbG4HlYQL5DZXMbX
       JWT_COOKIE_EXPIRE: 15d
       SESSION_SECRET: fallback_dev_secret
-      IMAGEKIT_PUBLIC_KEY: ${IMAGEKIT_PUBLIC_KEY}
-      IMAGEKIT_PRIVATE_KEY: ${IMAGEKIT_PRIVATE_KEY}
-      IMAGEKIT_URL_ENDPOINT: ${IMAGEKIT_URL_ENDPOINT}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
+    env_file:
+      - ./Backend/.env
 
   ai-service:
     build: ./ai-service

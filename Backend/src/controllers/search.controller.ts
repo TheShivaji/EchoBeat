@@ -6,6 +6,7 @@ import { routeQuery } from "../service/query-router.service.js";
 import { getAIRecommendations } from "../service/ai.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
+import { getCache, setCache } from "../utils/cache.js";
 
 const validation = async function (res: Response, req: AuthRequest) {
     const { q, page = 1, limit = 20 } = req.query;
@@ -71,7 +72,17 @@ export const searchSong = asyncHandler(async function (req: AuthRequest, res: Re
 
     req.log.info({ searchQuery }, "Search request received");
 
-    // Query Router
+    const cacheKey = `search:songs:${searchQuery.trim().toLowerCase()}:${page}:${limit}`;
+
+    const cacheResult = await getCache(cacheKey);
+
+    if (cacheResult) {
+        req.log.info({ cacheKey }, "Search cache hit")
+
+        return res.status(200).json(cacheResult);
+    }
+    req.log.info({ cacheKey }, "Search cache miss");
+
     const decision = routeQuery(searchQuery);
 
     if (decision === "AI_RECOMMENDATION") {
@@ -146,6 +157,8 @@ export const searchSong = asyncHandler(async function (req: AuthRequest, res: Re
             totalPages: Math.ceil(totalSong / limit)
         }
     };
+
+    await setCache(cacheKey, response, 300)
 
     req.log.info({ durationMs: Math.round(performance.now() - requestStart) }, "Search request completed");
 

@@ -1,9 +1,15 @@
 import { prisma } from "../config/db.js";
+import { setCache, getCache } from "../utils/cache.js";
 
 // ─── Popular Artists 
 
 export const getPopularArtists = async () => {
-    // Get all played songs with their total play count
+    const cachedArtists = await getCache("home:popular_artists");
+
+    if (cachedArtists) {
+        return cachedArtists;
+    }
+
     const popularSongs = await prisma.playHistory.groupBy({
         by: ["songId"],
         _count: {
@@ -13,7 +19,7 @@ export const getPopularArtists = async () => {
 
     const songIds = popularSongs.map((item) => item.songId);
 
-    // Fetch only active songs with active artists
+
     const songs = await prisma.song.findMany({
         where: {
             id: {
@@ -64,7 +70,7 @@ export const getPopularArtists = async () => {
 
     const artistIds = [...artistPlayCount.keys()];
 
-    // Fetch artist details
+
     const artists = await prisma.artist.findMany({
         where: {
             id: {
@@ -83,12 +89,21 @@ export const getPopularArtists = async () => {
         .sort((a, b) => b.playCount - a.playCount)
         .slice(0, 10);
 
+    await setCache("home:popular_artists", popularArtists, 300);
+
     return popularArtists;
 };
 
 
 // ─── Trending Songs 
 export const getTrendingSongs = async () => {
+
+    const cachedTrendingSongs = await getCache("home:trending_songs");
+
+    if (cachedTrendingSongs) {
+        return cachedTrendingSongs;
+    }
+
     const sevenDaysAgo = new Date();
 
     sevenDaysAgo.setDate(
@@ -161,6 +176,8 @@ export const getTrendingSongs = async () => {
                 song !== null
         );
 
+    await setCache("home:trending_songs", rankedSongs, 300);
+
     return rankedSongs;
 };
 
@@ -168,6 +185,11 @@ export const getTrendingSongs = async () => {
 // ─── New Releases 
 
 export const getNewReleases = async () => {
+    const cachedNewReleases = await getCache("home:new_releases");
+
+    if (cachedNewReleases) {
+        return cachedNewReleases;
+    }
     const newReleases = await prisma.song.findMany({
         where: {
             isDeleted: false,
@@ -196,6 +218,8 @@ export const getNewReleases = async () => {
         take: 10
     });
 
+    await setCache("home:new_releases", newReleases, 300);
+
     return newReleases;
 };
 
@@ -214,6 +238,13 @@ export const getRecentlyPlayed = async (
     }
 
     const skip = (page - 1) * limit;
+
+    const cacheKey = `home:recently_played:${userId}:${page}:${limit}`;
+    const cachedRecentlyPlayed = await getCache(cacheKey);
+
+    if (cachedRecentlyPlayed) {
+        return cachedRecentlyPlayed;
+    }
 
     const recentlyPlayed =
         await prisma.playHistory.findMany({
@@ -241,6 +272,6 @@ export const getRecentlyPlayed = async (
                 }
             }
         });
-
+    await setCache(cacheKey, recentlyPlayed, 300);
     return recentlyPlayed;
 };

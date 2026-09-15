@@ -3,6 +3,7 @@ import { prisma } from "../config/db.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
+import { deleteCacheByPattern } from "../utils/cache.js";
 
 export const playSong = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { songId } = req.body;
@@ -34,6 +35,8 @@ export const playSong = asyncHandler(async (req: AuthRequest, res: Response) => 
         }
     }
 
+    await deleteCacheByPattern(`home:recently_played:${userId}:*`);
+
     return res.status(200).json({ message: "Song added to recently played", history: historyRecord });
 });
 
@@ -45,6 +48,8 @@ export const deleteHistory = asyncHandler(async (req: AuthRequest, res: Response
     if (history.length === 0) throw new AppError("No history found", 404);
 
     await prisma.playHistory.deleteMany({ where: { userId } });
+
+    await deleteCacheByPattern(`home:recently_played:${userId}:*`);
 
     return res.status(200).json({ message: "History deleted successfully" });
 });
