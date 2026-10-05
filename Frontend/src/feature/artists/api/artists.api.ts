@@ -2,7 +2,7 @@ import axios from "axios";
 import type { UploadArtists } from "../types/artists.types";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api/artists",
+    baseURL: "/api/artists",
     withCredentials: true,
     headers: {
         "Content-Type": "multipart/form-data",

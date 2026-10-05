@@ -2,7 +2,7 @@ import axios from "axios";
 import type { SignupUser } from "../types/auth.types";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api/user",
+    baseURL: "/api/user",
     withCredentials: true
 })
 

@@ -181,7 +181,7 @@ const SignupPage = () => {
                 </div>
 
                 <a 
-                    href="http://localhost:5000/api/user/google" 
+                    href="/api/user/google" 
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md text-[13px] font-medium text-[#ffffff] bg-[#222222] border border-[#333333] hover:bg-[#333333] hover:border-[#444444] transition-all duration-150"
                 >
                     <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">

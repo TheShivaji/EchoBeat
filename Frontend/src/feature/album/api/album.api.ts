@@ -2,7 +2,7 @@ import axios from "axios";
 import type { Album } from "../types/album.types";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api/album",
+    baseURL: "/api/album",
     withCredentials: true,
 })
 
