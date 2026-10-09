@@ -1,13 +1,15 @@
+import asyncio
+
 from fastapi import HTTPException, FastAPI
-from src.services.llm_service import (
+from .services.llm_service import (
     understand_music_request,
     playlist_genrating,
     process_lyrics_request,
     chatbot_assistant,
 )
-from src.schemas.recommendation import MusicRequest
-from src.schemas.lyrics import LyricsRequest, LyricsResponse
-from src.schemas.assistant import ChatRequest, ChatResponse
+from .schemas.recommendation import MusicRequest
+from .schemas.lyrics import LyricsRequest, LyricsResponse
+from .schemas.assistant import ChatRequest, ChatResponse
 
 
 app = FastAPI(
@@ -16,6 +18,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+
+@app.get("/health", status_code=200)
+async def health_check():
+    return {"status": "healthy"}
 
 @app.post("/ai/understand")
 async def understand(req: MusicRequest):
@@ -32,7 +39,10 @@ async def playlist(req: MusicRequest):
 @app.post("/ai/lyrics", response_model=LyricsResponse)
 async def lyrics(req: LyricsRequest):
     if not req.lyrics or not req.lyrics.strip():
-        raise HTTPException(status_code=400, detail="Lyrics are required for processing.")
+        raise HTTPException(
+            status_code=400, 
+            detail="Lyrics are required for processing."
+            )
     result = await process_lyrics_request(req)
     return result
 
@@ -45,6 +55,27 @@ async def assistant(req: ChatRequest):
     recent played, playlists, artists, create playlist).
     """
     if not req.message or not req.message.strip():
-        raise HTTPException(status_code=400, detail="Message is required.")
-    result = await chatbot_assistant(req)
-    return result
+        raise HTTPException(
+            status_code=400, 
+            detail="Message is required."
+            )
+
+        
+    try:
+        result = await asyncio.wait_for(
+            chatbot_assistant(req),
+            timeout = 30.0
+        )
+        return result
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="AI processing timed out (took more than 30 seconds). Please try again."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process request: {str(e)}"
+        )
+
+    

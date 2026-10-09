@@ -73,3 +73,29 @@ services:
     restart: always
     networks:
       - default
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: echobeats-ai-service
+    depends_on:
+      backend:
+        condition: service_healthy
+        required: true
+      postgres:
+        condition: service_healthy
+        required: true
+      redis:
+        condition: service_healthy
+        required: true
+    restart: always
+    env_file:
+      - ./ai-service/.env
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    ports: []
+    networks:
+      - default

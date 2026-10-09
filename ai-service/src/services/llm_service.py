@@ -9,6 +9,7 @@ Is file mein 4 kaam hote hain:
 """
 
 import os
+from typing import cast
 from dotenv import load_dotenv
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -198,7 +199,7 @@ async def process_lyrics_request(req: LyricsRequest) -> LyricsResponse:
         ChatPromptTemplate.from_messages([("system", lyrics_system_prompt), ("human", human_prompt)])
         | llm.with_structured_output(LyricsResponse, method="json_mode")
     )
-    return await chain.ainvoke({})
+    return cast(LyricsResponse, await chain.ainvoke({}))
 
 
 # =============================================================================
