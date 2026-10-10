@@ -23,12 +23,26 @@ export async function setCache(
 }
 
 export async function deleteCache(key: string) {
-    await redis.del(key);
+    if (!key) return;
+    try {
+        await redis.del(key);
+    } catch (err) {
+        console.error(`Failed to delete cache for key ${key}:`, err);
+    }
 }
 
 export async function deleteCacheByPattern(pattern: string) {
-    for await (const key of redis.scanIterator({ MATCH: pattern })) {
-        await redis.del(key);
+    if (!pattern) return;
+    try {
+        const keys: string[] = [];
+        for await (const key of redis.scanIterator({ MATCH: pattern })) {
+            if (key) keys.push(...key);
+        }
+        if (keys.length > 0) {
+            await redis.del(keys);
+        }
+    } catch (err) {
+        console.error(`Failed to delete cache pattern ${pattern}:`, err);
     }
 }
 

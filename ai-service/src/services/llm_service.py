@@ -9,6 +9,9 @@ Is file mein 4 kaam hote hain:
 """
 
 import os
+import time
+import logging
+logging.basicConfig(level=logging.INFO)
 from typing import cast
 from dotenv import load_dotenv
 
@@ -19,6 +22,7 @@ from ..schemas.assistant import (
     ChatRequest, ChatResponse, PendingPlaylist, UserContext,
     SearchSongsArgs, RecentPlayedArgs, GetLikedSongsArgs,
     GetPlaylistArgs, GetArtistArgs, CreatePlaylistArgs,
+    PlaySongArgs,
 )
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
@@ -52,20 +56,15 @@ llm = ChatGoogleGenerativeAI(
 )
 
 
-# =============================================================================
-# 2. Echo Agent Tools
-#    Node.js pehle se user ka data (liked songs, playlists, recent played)
-#    fetch karke bhejta hai. Yeh tools usi data se padhte hain.
-# =============================================================================
+logger = logging.getLogger(__name__)
 
-def build_tools(user_context: UserContext, pending: list):
+def build_tools(user_context: UserContext, pending: list, pending_play: list):
     """
-    6 tools banata hai jo user_context se data padhte hain.
-    `pending` list mein create_playlist apna data store karta hai
-    taaki Node.js baad mein actual playlist bana sake.
+    7 tools banata hai jo user_context se data padhte hain.
+    `pending` list mein create_playlist apna data store karta hai,
+    aur `pending_play` list mein play_song apna data store karta hai.
     """
 
-    # Liked + Recently Played songs — dono ko merge karo (duplicates hata ke)
     def _all_songs():
         seen = set()
         result = []
@@ -160,7 +159,18 @@ def build_tools(user_context: UserContext, pending: list):
         ))
         return f"✅ Playlist '{playlist_name}' create ho rahi hai! Node.js songs dhundh ke add karega."
 
-    return [search_songs, get_recent_played, get_liked_songs, get_playlist, get_artist, create_playlist]
+    # ── Tool 7: Play Song ─────────────────────────────────────────────────────
+    @tool(args_schema=PlaySongArgs)
+    async def play_song(song_name: str) -> str:
+        """Finds a song by name from the user's library and queues it up to play."""
+        q = song_name.lower()
+        for s in _all_songs():
+            if q in (s.title or "").lower() or q in (s.artist or "").lower():
+                pending_play.append(s)
+                return f"✅ Playing song '{s.title}' by {s.artist}."
+        return f"❌ Could not find a song named '{song_name}' in your library."
+
+    return [search_songs, get_recent_played, get_liked_songs, get_playlist, get_artist, create_playlist, play_song]
 
 
 # =============================================================================
@@ -216,9 +226,11 @@ async def chatbot_assistant(req: ChatRequest) -> ChatResponse:
       3. Agent tools call karta hai aur reply deta hai
       4. Agar playlist banani ho, Node.js ko pending_playlist mein bhejo
     """
+    start_time = time.perf_counter()
     ctx = req.user_context or UserContext()
     pending: list = []
-    tools = build_tools(ctx, pending)
+    pending_play: list = []
+    tools = build_tools(ctx, pending, pending_play)
 
     agent = create_agent(model=llm, tools=tools, system_prompt=chatbot_assistant_prompt)
 
@@ -233,7 +245,11 @@ async def chatbot_assistant(req: ChatRequest) -> ChatResponse:
         else str(content)
     )
 
-    # Windows console pe emoji crash hoti hai — safe print
-    print("Echo Agent:", reply.encode("ascii", "backslashreplace").decode("ascii"))
+    elapsed = time.perf_counter() - start_time
+    logger.info("Echo Agent completed in %.2f seconds", elapsed)
 
-    return ChatResponse(reply=reply, pending_playlist=pending[-1] if pending else None)
+    return ChatResponse(
+        reply=reply, 
+        pending_playlist=pending[-1] if pending else None,
+        play_song=pending_play[-1] if pending_play else None
+    )

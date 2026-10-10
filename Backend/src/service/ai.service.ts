@@ -10,7 +10,8 @@ import { prisma } from "../config/db.js";
 const callAIService = async (
     endpoint: string,
     payload: any,
-    authToken?: string
+    authToken?: string,
+    timeoutMs: number = 60000 // Default 60 seconds
 ): Promise<any> => {
     const body = typeof payload === "string" ? { message: payload } : payload;
 
@@ -21,10 +22,16 @@ const callAIService = async (
         method: "POST",
         headers,
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!response.ok) {
-        throw new Error(`AI service request failed with status: ${response.status}`);
+        const error = new Error(
+            `AI service request failed with status: ${response.status}`
+        );
+
+        Object.assign(error, { status: response.status });
+        throw error;
     }
 
     return response.json();
@@ -222,7 +229,7 @@ export const createAIPlaylistForUser = async (message: string, userId: string) =
 
     const playlistName = playlist_name?.trim() || "AI Generated Playlist";
 
-    const playlist = await prisma.$transaction(async (tx) => {
+    const playlist = await prisma.$transaction(async (tx: any) => {
         return tx.playlist.create({
             data: {
                 name: playlistName,
@@ -319,9 +326,16 @@ export const callChatbotAssistant = async ({
         return await callAIService(
             "/ai/assistant",
             { message, user_id: userId, user_context: userContext },
+            undefined,
+            70000 // 70 seconds timeout (to safely cover Python's 60+ sec logic)
         );
-    } catch (error) {
-        console.error("Chatbot assistant error:", error);
-        throw error;
+    } catch (error: any) {
+        if (
+            error.name === "AbortError" ||
+            error.name === "TimeoutError" ||
+            error.status === 504
+        ) {
+            throw new Error("AI service timeout. Please try again.");
+        }
     }
 };

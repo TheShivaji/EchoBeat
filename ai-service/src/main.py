@@ -17,6 +17,10 @@ app = FastAPI(
     description="AI-powered music intelligence engine for EchoBeats",
     version="1.0.0",
 )
+from fastapi import HTTPException, FastAPI
+import asyncio
+
+
 
 
 
@@ -61,21 +65,32 @@ async def assistant(req: ChatRequest):
             )
 
         
-    try:
-        result = await asyncio.wait_for(
-            chatbot_assistant(req),
-            timeout = 30.0
-        )
-        return result
-    except asyncio.TimeoutError:
-        raise HTTPException(
-            status_code=504,
-            detail="AI processing timed out (took more than 30 seconds). Please try again."
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to process request: {str(e)}"
-        )
+    max_attempt = 2 
+
+    for attempt in range(max_attempt):
+        try:
+            result = await asyncio.wait_for(
+                chatbot_assistant(req),
+                timeout= 30.0
+            )
+            return result
+
+        except asyncio.TimeoutError:
+            if attempt == 0:
+                print("Echo Agent timed out. Retrying once...")
+                await asyncio.sleep(1)
+                continue
+
+            raise HTTPException(
+                status_code=504,
+                detail="AI processing timed out (took more than 30 seconds). Please try again."
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to process your request. Please try again."
+            )
+    
+ 
 
     

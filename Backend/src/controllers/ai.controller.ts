@@ -155,9 +155,24 @@ export const chatbotAssistant = asyncHandler(async (req: AuthRequest, res: Respo
         }
     }
 
+    let songToPlay = null;
+    if (result?.play_song?.id) {
+        const fullSong = await prisma.song.findUnique({
+            where: { id: result.play_song.id },
+            include: {
+                artists: { select: { id: true, name: true, imageUrl: true } },
+                album: { select: { id: true, title: true, imageUrl: true } },
+            },
+        });
+        if (fullSong && !fullSong.isDeleted) {
+            songToPlay = fullSong;
+        }
+    }
+
     return res.status(200).json({
         reply: result?.reply ?? "Kuch problem aa gayi. Dobara try karein.",
         playlist: createdPlaylist ?? null,
+        play_song: songToPlay,
     });
 });
 

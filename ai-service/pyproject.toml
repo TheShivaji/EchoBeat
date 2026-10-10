@@ -17,6 +17,7 @@ dependencies = [
     "langchain-core>=1.6.2",
     "langchain-google-genai>=4.4.0",
     "pydantic",
+    "pytest>=9.1.1",
     "uvicorn[standard]>=0.52.4",
 ]
 

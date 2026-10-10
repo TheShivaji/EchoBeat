@@ -1,10 +1,12 @@
 import { useState, useCallback, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../../../app/app.store";
 import type { User } from "../../auth/types/auth.types";
 import { sendChatMessageAPI, type ChatMessage } from "../api/ai.api";
+import { setCurrentSong } from "../../players/state/playerSlice";
 
 export const useChat = () => {
+    const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.auth.user) as
         | (User & { id?: string })
         | null;
@@ -59,6 +61,10 @@ export const useChat = () => {
                             timestamp: Date.now(),
                         },
                     ]);
+                }
+
+                if (res.play_song) {
+                    dispatch(setCurrentSong({ song: res.play_song, queue: [res.play_song] }));
                 }
             } catch {
                 setMessages((prev) => [

@@ -49,7 +49,7 @@ const aiLimiter = rateLimit({
         sendCommand: (...args: string[]) => redis.sendCommand(args),
         prefix: "rl-ai:",
     }),
-    max: 5,
+    max: 50,
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: "Too many AI requests, please try again later." },
@@ -69,8 +69,8 @@ app.use(cors({
 }));
 
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use(cookieParser());
 
 

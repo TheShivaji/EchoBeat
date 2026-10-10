@@ -86,4 +86,5 @@ export interface ChatResponse {
         description: string;
         imageUrl: string;
     } | null;
+    play_song?: Song | null;
 }

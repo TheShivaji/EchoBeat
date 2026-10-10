@@ -119,6 +119,14 @@ class PendingPlaylist(BaseModel):
     song_ids: List[str] = Field(default_factory=list)
 
 
+class PlaySongArgs(BaseModel):
+    """Play a specific song from the user's library."""
+    song_name: str = Field(
+        ...,
+        description="The name of the song to play (e.g. 'Tum Hi Ho', 'Sairat Zaala Ji').",
+    )
+
+
 class ChatRequest(BaseModel):
     """Incoming request body for the /ai/assistant endpoint."""
 
@@ -140,4 +148,8 @@ class ChatResponse(BaseModel):
     pending_playlist: Optional[PendingPlaylist] = Field(
         None,
         description="If the agent decided to create a playlist, contains the data to create it.",
+    )
+    play_song: Optional[SongItem] = Field(
+        None,
+        description="If the agent decided to play a song, contains the song data to play.",
     )
